@@ -11,7 +11,7 @@ Dashboard web para análise de ações AXIA e monitoramento do setor elétrico b
 
 ## Screenshots
 
-![Dashboard Preview](docs/dashboard-preview.png)
+![Dashboard Preview](https://github.com/user-attachments/assets/67c5513f-61d2-449b-9c39-10a4dd1a2f71)
 
 ## Installation / Instalação
 
@@ -36,6 +36,11 @@ pip install -r requirements.txt
 3. Run the application:
 ```bash
 python app.py
+```
+
+For development with debug mode enabled:
+```bash
+FLASK_DEBUG=true python app.py
 ```
 
 4. Open your browser and navigate to:
