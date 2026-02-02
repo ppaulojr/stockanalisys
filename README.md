@@ -52,6 +52,45 @@ http://localhost:5000
 
 The dashboard automatically loads and refreshes data every 60 seconds. You can also manually refresh individual sections using the "Refresh" buttons.
 
+### Web Dashboard
+
+The main dashboard provides a visual interface for monitoring AXIA stocks and Brazilian energy data.
+
+### ONS Integration Module
+
+The project includes a Python module for direct integration with ONS data API:
+
+#### Example Usage
+
+```python
+from ons_integration import ONSClient
+
+# Create client
+client = ONSClient()
+
+# List available datasets
+datasets = client.list_datasets()
+for dataset in datasets:
+    print(f"Dataset: {dataset['name']}")
+    print(f"Title: {dataset['title']}")
+
+# Search specific datasets
+datasets_carga = client.search_datasets("carga")
+for dataset in datasets_carga:
+    print(f"Load dataset: {dataset['title']}")
+
+# Get dataset information
+info = client.get_dataset_info("dataset-id")
+if info:
+    print(f"Description: {info['notes']}")
+```
+
+#### Run ONS Example
+
+```bash
+python example_ons.py
+```
+
 ### API Endpoints
 
 The application provides several REST API endpoints:
