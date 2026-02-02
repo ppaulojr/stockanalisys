@@ -21,9 +21,13 @@ wheels/
 *.egg
 
 # Virtual Environment
+.env
+.venv
 venv/
 env/
 ENV/
+env.bak/
+venv.bak/
 
 # IDEs
 .vscode/
@@ -44,3 +48,7 @@ htmlcov/
 # Temporary files
 *.tmp
 .tmp/
+*.log
+
+# Node
+node_modules/
