@@ -8,7 +8,6 @@ Dashboard web para análise de ações AXIA e monitoramento do setor elétrico b
 - 💧 **Reservoir Levels** - Current water reservoir levels across Brazilian regions
 - ⚡ **CCEE PLD Prices** - Settlement prices from the Brazilian Electric Energy Trading Chamber
 - 🔌 **Grid Consumption** - Real-time power consumption data from the Brazilian grid
-- 🔗 **ONS Integration** - Real data integration with ONS (Operador Nacional do Sistema Elétrico) from https://dados.ons.org.br/
 
 ## Screenshots
 
@@ -119,10 +118,9 @@ curl http://localhost:5000/api/dashboard
 ## Data Sources / Fontes de Dados
 
 - **Stock Data**: Yahoo Finance API via yfinance library
-- **ONS Data**: Real data integration with dados.ons.org.br using CKAN API
 - **Energy Data**: Simulated data based on typical Brazilian grid operations
   - **Note**: Real implementation would require API access to:
-    - ONS (Operador Nacional do Sistema Elétrico) - Now available via ons_integration module
+    - ONS (Operador Nacional do Sistema Elétrico)
     - CCEE (Câmara de Comercialização de Energia Elétrica)
 
 ## Project Structure / Estrutura do Projeto
@@ -132,51 +130,11 @@ stockanalisys/
 ├── app.py                 # Flask application and API routes
 ├── axia_fetcher.py        # AXIA stock data fetcher
 ├── energy_fetcher.py      # Brazilian energy data fetcher
-├── ons_integration/       # ONS data integration module
-│   ├── __init__.py       # Module exports
-│   ├── client.py         # ONS API client
-│   └── models.py         # Data models
-├── example_ons.py        # ONS integration example
-├── requirements.txt      # Python dependencies
-├── tests/                # Unit tests
-│   ├── test_client.py   # ONS client tests
-│   └── test_models.py   # Data model tests
+├── requirements.txt       # Python dependencies
 ├── templates/
-│   └── index.html       # Dashboard HTML template
-└── README.md            # This file
+│   └── index.html        # Dashboard HTML template
+└── README.md             # This file
 ```
-
-## ONS Integration Details
-
-The ONS integration module provides access to real data from the Brazilian Electric System Operator:
-
-### Features
-
-- List all available datasets from dados.ons.org.br
-- Search datasets by keywords
-- Get detailed dataset information
-- Access dataset resources
-- Data models for energy, load, and generation data
-
-### ONS API
-
-The ONS API follows the CKAN standard and provides the following main endpoints:
-
-- `package_list`: List all datasets
-- `package_show`: Details of a specific dataset
-- `package_search`: Search datasets by term
-- `datastore_search`: Search data within a resource
-
-For more information about the API: https://dados.ons.org.br/
-
-### Using ONS Data for Stock Analysis
-
-ONS data can be useful for analyzing energy sector stocks:
-
-1. **Energy Generation**: Correlate generation data with performance of generator companies
-2. **System Load**: Analyze energy demand and its impact on PLD (Settlement Price of Differences)
-3. **Renewable Sources**: Evaluate trends in wind and solar generation
-4. **Hydrology**: Reservoir data can impact hydroelectric companies
 
 ## Deployment / Implantação
 
@@ -211,8 +169,10 @@ Paulo Jr. (ppaulojr)
 
 ## Notes / Observações
 
-This project includes both a web dashboard and a Python module for ONS data integration.
+This project uses simulated data for Brazilian energy sector information. For production use with real data, you would need to:
 
-The ONS integration module (`ons_integration/`) provides real data access from dados.ons.org.br using the CKAN API standard.
+1. Register and obtain API credentials from ONS (Operador Nacional do Sistema Elétrico)
+2. Register and obtain API credentials from CCEE (Câmara de Comercialização de Energia Elétrica)
+3. Update the `energy_fetcher.py` module to use real API endpoints
 
 The AXIA stock data is fetched in real-time from Yahoo Finance and reflects actual market data from B3 (Brazilian Stock Exchange).
