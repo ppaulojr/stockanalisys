@@ -53,7 +53,7 @@ class ONSClient:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            raise Exception(f"Erro ao acessar API do ONS: {str(e)}")
+            raise Exception(f"Erro ao acessar API do ONS: {str(e)}") from e
     
     def list_datasets(self) -> List[Dict[str, Any]]:
         """

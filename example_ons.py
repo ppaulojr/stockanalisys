@@ -66,7 +66,7 @@ def main():
     
     print()
     
-    # 3. Buscar datasets de geração
+    # 3. Buscar datasets de geracao
     print("3. Buscando datasets relacionados à 'geração'...")
     print("-" * 60)
     try:
