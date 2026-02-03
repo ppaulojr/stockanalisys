@@ -1,5 +1,5 @@
 """
-Testes para parsing de dados do ONS
+Tests for ONS data parsing
 """
 
 import unittest
@@ -9,10 +9,10 @@ from ons_integration.client import ONSClient
 
 
 class TestONSDataParsing(unittest.TestCase):
-    """Testes para o parsing de dados do ONS"""
+    """Tests for ONS data parsing"""
     
     def setUp(self):
-        """Configuração inicial dos testes"""
+        """Initial test setup"""
         self.client = ONSClient(timeout=10)
     
     def test_parse_reservoir_data_with_valid_dataset(self):
@@ -201,10 +201,10 @@ class TestONSDataParsing(unittest.TestCase):
 
 
 class TestEnergyFetcherWithParsing(unittest.TestCase):
-    """Testes de integração para EnergyDataFetcher com parsing"""
+    """Integration tests for EnergyDataFetcher with parsing"""
     
     def setUp(self):
-        """Configuração inicial dos testes"""
+        """Initial test setup"""
         from energy_fetcher import EnergyDataFetcher
         self.fetcher = EnergyDataFetcher()
     

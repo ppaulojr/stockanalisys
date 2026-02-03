@@ -301,8 +301,8 @@ class ONSClient:
                 # Verificar se o campo corresponde exatamente a algum nome da região
                 for priority, region_name in enumerate(region_names):
                     if field_lower == region_name or field_lower.endswith("_" + region_name):
-                        # Match exato ou sufixo, priorizar matches mais específicos
-                        if priority > best_match_priority or best_match is None:
+                        # Match exato ou sufixo, priorizar matches mais específicos (menor priority)
+                        if priority < best_match_priority or best_match_priority == -1:
                             best_match = field_name
                             best_match_priority = priority
                             break
@@ -405,8 +405,8 @@ class ONSClient:
                 # Verificar se o campo corresponde exatamente a algum nome da região
                 for priority, region_name in enumerate(region_names):
                     if field_lower == region_name or field_lower.endswith("_" + region_name):
-                        # Match exato ou sufixo, priorizar matches mais específicos
-                        if priority > best_match_priority or best_match is None:
+                        # Match exato ou sufixo, priorizar matches mais específicos (menor priority)
+                        if priority < best_match_priority or best_match_priority == -1:
                             best_match = field_name
                             best_match_priority = priority
                             break
