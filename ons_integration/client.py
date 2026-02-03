@@ -194,12 +194,13 @@ class ONSClient:
         
         return generation_data
     
-    def get_dataset_resource_data(self, resource_id: str) -> Optional[List[Dict[str, Any]]]:
+    def get_dataset_resource_data(self, resource_id: str, limit: int = 100) -> Optional[List[Dict[str, Any]]]:
         """
         Obtém dados de um recurso específico de um dataset
         
         Args:
             resource_id: ID do recurso
+            limit: Número máximo de registros a retornar (padrão: 100)
             
         Returns:
             Dados do recurso ou None se não encontrado
@@ -207,7 +208,7 @@ class ONSClient:
         try:
             result = self._make_request("datastore_search", {
                 "resource_id": resource_id,
-                "limit": 100
+                "limit": limit
             })
             
             if result.get("success"):
@@ -217,3 +218,222 @@ class ONSClient:
         except Exception as e:
             print(f"Aviso: Erro ao obter dados do recurso {resource_id}: {str(e)}")
             return None
+    
+    def parse_reservoir_data(self, datasets: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """
+        Parseia dados de reservatórios a partir de datasets do ONS
+        
+        Args:
+            datasets: Lista de datasets retornados pela busca
+            
+        Returns:
+            Dicionário com dados de reservatórios por região ou None se não encontrado
+        """
+        if not datasets:
+            return None
+        
+        # Tentar encontrar recursos relevantes nos datasets
+        for dataset in datasets:
+            resources = dataset.get("resources", [])
+            
+            for resource in resources:
+                # Procurar por recursos que contenham dados de reservatório
+                resource_name = resource.get("name", "").lower()
+                resource_format = resource.get("format", "").upper()
+                
+                # Priorizar recursos CSV ou JSON com dados recentes
+                if resource_format in ["CSV", "JSON"] and any(
+                    keyword in resource_name 
+                    for keyword in ["reservatorio", "ear", "armazenamento"]
+                ):
+                    resource_id = resource.get("id")
+                    if resource_id:
+                        records = self.get_dataset_resource_data(resource_id, limit=10)
+                        
+                        if records and len(records) > 0:
+                            # Parse o registro mais recente
+                            return self._extract_reservoir_values(records)
+        
+        return None
+    
+    def _extract_reservoir_values(self, records: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Extrai valores de reservatório de registros brutos do ONS
+        
+        Args:
+            records: Lista de registros do dataset
+            
+        Returns:
+            Dicionário estruturado com dados de reservatórios
+        """
+        # Pegar o registro mais recente (geralmente o primeiro)
+        latest_record = records[0] if records else {}
+        
+        # Estrutura de retorno com dados por região
+        result = {}
+        
+        # Mapear campos comuns do ONS para nossa estrutura
+        # Os nomes de campos podem variar, então tentamos múltiplas possibilidades
+        # Usar tuplas com prioridade: nomes mais específicos primeiro
+        region_mappings = {
+            "southeast": ["sudeste", "se_co", "seco", "se"],
+            "south": ["sul", "s"],
+            "northeast": ["nordeste", "ne"],
+            "north": ["norte", "n"]
+        }
+        
+        # Capacidades aproximadas por região (MWmed)
+        capacities = {
+            "southeast": 208355,
+            "south": 19768,
+            "northeast": 56468,
+            "north": 13489
+        }
+        
+        # Processar cada região, procurando o melhor match
+        for region_key, region_names in region_mappings.items():
+            best_match = None
+            best_match_priority = -1
+            
+            for field_name in latest_record.keys():
+                field_lower = field_name.lower().strip()
+                
+                # Verificar se o campo corresponde exatamente a algum nome da região
+                for priority, region_name in enumerate(region_names):
+                    if field_lower == region_name or field_lower.endswith("_" + region_name):
+                        # Match exato ou sufixo, priorizar matches mais específicos
+                        if priority > best_match_priority or best_match is None:
+                            best_match = field_name
+                            best_match_priority = priority
+                            break
+            
+            # Se encontramos um match, extrair o valor
+            if best_match:
+                value = latest_record.get(best_match)
+                
+                if value is not None:
+                    try:
+                        level_percent = float(value)
+                        
+                        result[region_key] = {
+                            "level_percent": level_percent,
+                            "capacity_mwmed": capacities.get(region_key, 0),
+                            "timestamp": latest_record.get("data", latest_record.get("timestamp", "")),
+                            "status": "normal" if level_percent > 50 else "attention"
+                        }
+                    except (ValueError, TypeError):
+                        continue
+        
+        return result if result else None
+    
+    def parse_consumption_data(self, datasets: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """
+        Parseia dados de consumo/carga a partir de datasets do ONS
+        
+        Args:
+            datasets: Lista de datasets retornados pela busca
+            
+        Returns:
+            Dicionário com dados de consumo ou None se não encontrado
+        """
+        if not datasets:
+            return None
+        
+        # Tentar encontrar recursos relevantes nos datasets
+        for dataset in datasets:
+            resources = dataset.get("resources", [])
+            
+            for resource in resources:
+                # Procurar por recursos que contenham dados de carga
+                resource_name = resource.get("name", "").lower()
+                resource_format = resource.get("format", "").upper()
+                
+                # Priorizar recursos CSV ou JSON com dados recentes
+                if resource_format in ["CSV", "JSON"] and any(
+                    keyword in resource_name 
+                    for keyword in ["carga", "demanda", "consumo", "load"]
+                ):
+                    resource_id = resource.get("id")
+                    if resource_id:
+                        records = self.get_dataset_resource_data(resource_id, limit=10)
+                        
+                        if records and len(records) > 0:
+                            # Parse o registro mais recente
+                            return self._extract_consumption_values(records)
+        
+        return None
+    
+    def _extract_consumption_values(self, records: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Extrai valores de consumo de registros brutos do ONS
+        
+        Args:
+            records: Lista de registros do dataset
+            
+        Returns:
+            Dicionário estruturado com dados de consumo
+        """
+        # Pegar o registro mais recente (geralmente o primeiro)
+        latest_record = records[0] if records else {}
+        
+        result = {
+            "current_load_mw": 0,
+            "forecast_load_mw": 0,
+            "timestamp": latest_record.get("data", latest_record.get("timestamp", "")),
+            "regions": {}
+        }
+        
+        # Mapear campos comuns do ONS
+        # Usar lista ordenada por especificidade
+        region_mappings = {
+            "southeast": ["sudeste", "se_co", "seco", "se"],
+            "south": ["sul", "s"],
+            "northeast": ["nordeste", "ne"],
+            "north": ["norte", "n"]
+        }
+        
+        total_load = 0
+        
+        # Processar cada região, procurando o melhor match
+        for region_key, region_names in region_mappings.items():
+            best_match = None
+            best_match_priority = -1
+            
+            for field_name in latest_record.keys():
+                field_lower = field_name.lower().strip()
+                
+                # Verificar se o campo corresponde exatamente a algum nome da região
+                for priority, region_name in enumerate(region_names):
+                    if field_lower == region_name or field_lower.endswith("_" + region_name):
+                        # Match exato ou sufixo, priorizar matches mais específicos
+                        if priority > best_match_priority or best_match is None:
+                            best_match = field_name
+                            best_match_priority = priority
+                            break
+            
+            # Se encontramos um match, extrair o valor
+            if best_match:
+                value = latest_record.get(best_match)
+                
+                if value is not None:
+                    try:
+                        load_mw = float(value)
+                        total_load += load_mw
+                        result["regions"][region_key] = {
+                            "load_mw": load_mw,
+                            "percent": 0  # Será calculado depois
+                        }
+                    except (ValueError, TypeError):
+                        continue
+        
+        # Calcular percentuais
+        if total_load > 0:
+            for region_key in result["regions"]:
+                load_mw = result["regions"][region_key]["load_mw"]
+                result["regions"][region_key]["percent"] = round((load_mw / total_load) * 100, 1)
+            
+            result["current_load_mw"] = int(total_load)
+            # Forecast é tipicamente 2-5% maior que o atual
+            result["forecast_load_mw"] = int(total_load * 1.03)
+        
+        return result if result["regions"] else None

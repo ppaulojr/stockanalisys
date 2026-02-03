@@ -29,19 +29,30 @@ class EnergyDataFetcher:
             # Check if ONS API is accessible
             ons_accessible = len(datasets) > 0
             
+            parsed_data = None
             if ons_accessible:
                 logger.info(f"Found {len(datasets)} reservoir datasets from ONS")
-                # Note: Full implementation would parse specific dataset resources
-                # For now, return placeholder structure with ONS connection verified
-                data_source = 'ONS API Connected'
-                note = 'Connected to ONS API - Placeholder data (full parsing not yet implemented)'
+                # Parse actual reservoir data from ONS dataset resources
+                parsed_data = self.ons_client.parse_reservoir_data(datasets)
+            
+            if parsed_data:
+                # Successfully parsed real data from ONS
+                logger.info("Successfully parsed reservoir data from ONS")
+                parsed_data['data_source'] = 'ONS API'
+                parsed_data['note'] = 'Data successfully retrieved and parsed from ONS'
+                return parsed_data
+            elif ons_accessible:
+                # ONS is accessible but parsing failed, use fallback with note
+                logger.warning("ONS API accessible but data parsing failed, using fallback data")
+                data_source = 'Fallback data'
+                note = 'ONS API accessible but data format not recognized'
             else:
+                # ONS API not accessible
                 logger.warning("No datasets found from ONS, using fallback data")
                 data_source = 'Fallback data'
                 note = 'ONS API temporarily unavailable'
             
-            # Return data structure
-            # TODO: Parse actual reservoir data from ONS dataset resources
+            # Return fallback data structure
             return {
                 'southeast': {
                     'level_percent': 65.4,
@@ -124,19 +135,30 @@ class EnergyDataFetcher:
             # Check if ONS API is accessible
             ons_accessible = len(datasets) > 0
             
+            parsed_data = None
             if ons_accessible:
                 logger.info(f"Found {len(datasets)} load/consumption datasets from ONS")
-                # Note: Full implementation would parse specific dataset resources
-                # For now, return placeholder structure with ONS connection verified
-                data_source = 'ONS API Connected'
-                note = 'Connected to ONS API - Placeholder data (full parsing not yet implemented)'
+                # Parse actual consumption data from ONS dataset resources
+                parsed_data = self.ons_client.parse_consumption_data(datasets)
+            
+            if parsed_data:
+                # Successfully parsed real data from ONS
+                logger.info("Successfully parsed consumption data from ONS")
+                parsed_data['data_source'] = 'ONS API'
+                parsed_data['note'] = 'Data successfully retrieved and parsed from ONS'
+                return parsed_data
+            elif ons_accessible:
+                # ONS is accessible but parsing failed, use fallback with note
+                logger.warning("ONS API accessible but data parsing failed, using fallback data")
+                data_source = 'Fallback data'
+                note = 'ONS API accessible but data format not recognized'
             else:
+                # ONS API not accessible
                 logger.warning("No datasets found from ONS, using fallback data")
                 data_source = 'Fallback data'
                 note = 'ONS API temporarily unavailable'
             
-            # Return data structure
-            # TODO: Parse actual consumption data from ONS dataset resources
+            # Return fallback data structure
             return {
                 'current_load_mw': 68542,
                 'forecast_load_mw': 70125,
