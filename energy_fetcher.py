@@ -26,70 +26,50 @@ class EnergyDataFetcher:
             # Try to get real data from ONS API
             datasets = self.ons_client.search_datasets("reservatorio")
             
-            # If we successfully get data from ONS, use it
-            if datasets:
+            # Check if ONS API is accessible
+            ons_accessible = len(datasets) > 0
+            
+            if ons_accessible:
                 logger.info(f"Found {len(datasets)} reservoir datasets from ONS")
-                # Note: For now, we return a structure with ONS connection verified
-                # Full implementation would parse specific dataset resources
-                return {
-                    'southeast': {
-                        'level_percent': 65.4,
-                        'capacity_mwmed': 208355,
-                        'timestamp': datetime.now().isoformat(),
-                        'status': 'normal'
-                    },
-                    'south': {
-                        'level_percent': 58.2,
-                        'capacity_mwmed': 19768,
-                        'timestamp': datetime.now().isoformat(),
-                        'status': 'normal'
-                    },
-                    'northeast': {
-                        'level_percent': 42.8,
-                        'capacity_mwmed': 56468,
-                        'timestamp': datetime.now().isoformat(),
-                        'status': 'attention'
-                    },
-                    'north': {
-                        'level_percent': 71.3,
-                        'capacity_mwmed': 13489,
-                        'timestamp': datetime.now().isoformat(),
-                        'status': 'normal'
-                    },
-                    'data_source': 'ONS API - dados.ons.org.br',
-                    'note': 'Data fetched from ONS public API'
-                }
+                # Note: Full implementation would parse specific dataset resources
+                # For now, return placeholder structure with ONS connection verified
+                data_source = 'ONS API Connected'
+                note = 'Connected to ONS API - Placeholder data (full parsing not yet implemented)'
             else:
-                # Fallback to default values if ONS is unavailable
                 logger.warning("No datasets found from ONS, using fallback data")
-                return {
-                    'southeast': {
-                        'level_percent': 65.4,
-                        'capacity_mwmed': 208355,
-                        'timestamp': datetime.now().isoformat(),
-                        'status': 'normal'
-                    },
-                    'south': {
-                        'level_percent': 58.2,
-                        'capacity_mwmed': 19768,
-                        'timestamp': datetime.now().isoformat(),
-                        'status': 'normal'
-                    },
-                    'northeast': {
-                        'level_percent': 42.8,
-                        'capacity_mwmed': 56468,
-                        'timestamp': datetime.now().isoformat(),
-                        'status': 'attention'
-                    },
-                    'north': {
-                        'level_percent': 71.3,
-                        'capacity_mwmed': 13489,
-                        'timestamp': datetime.now().isoformat(),
-                        'status': 'normal'
-                    },
-                    'data_source': 'Fallback data',
-                    'note': 'ONS API temporarily unavailable'
-                }
+                data_source = 'Fallback data'
+                note = 'ONS API temporarily unavailable'
+            
+            # Return data structure
+            # TODO: Parse actual reservoir data from ONS dataset resources
+            return {
+                'southeast': {
+                    'level_percent': 65.4,
+                    'capacity_mwmed': 208355,
+                    'timestamp': datetime.now().isoformat(),
+                    'status': 'normal'
+                },
+                'south': {
+                    'level_percent': 58.2,
+                    'capacity_mwmed': 19768,
+                    'timestamp': datetime.now().isoformat(),
+                    'status': 'normal'
+                },
+                'northeast': {
+                    'level_percent': 42.8,
+                    'capacity_mwmed': 56468,
+                    'timestamp': datetime.now().isoformat(),
+                    'status': 'attention'
+                },
+                'north': {
+                    'level_percent': 71.3,
+                    'capacity_mwmed': 13489,
+                    'timestamp': datetime.now().isoformat(),
+                    'status': 'normal'
+                },
+                'data_source': data_source,
+                'note': note
+            }
         except Exception as e:
             logger.error(f"Error fetching reservoir data: {str(e)}")
             return {'error': str(e)}
@@ -141,40 +121,35 @@ class EnergyDataFetcher:
             # Try to get real data from ONS API
             datasets = self.ons_client.search_datasets("carga")
             
-            # If we successfully connect to ONS, use it
-            if datasets:
+            # Check if ONS API is accessible
+            ons_accessible = len(datasets) > 0
+            
+            if ons_accessible:
                 logger.info(f"Found {len(datasets)} load/consumption datasets from ONS")
-                # Note: For now, we return a structure with ONS connection verified
-                # Full implementation would parse specific dataset resources
-                return {
-                    'current_load_mw': 68542,
-                    'forecast_load_mw': 70125,
-                    'timestamp': datetime.now().isoformat(),
-                    'regions': {
-                        'southeast': {'load_mw': 38245, 'percent': 55.8},
-                        'south': {'load_mw': 9876, 'percent': 14.4},
-                        'northeast': {'load_mw': 12543, 'percent': 18.3},
-                        'north': {'load_mw': 7878, 'percent': 11.5}
-                    },
-                    'data_source': 'ONS API - dados.ons.org.br',
-                    'note': 'Data fetched from ONS public API'
-                }
+                # Note: Full implementation would parse specific dataset resources
+                # For now, return placeholder structure with ONS connection verified
+                data_source = 'ONS API Connected'
+                note = 'Connected to ONS API - Placeholder data (full parsing not yet implemented)'
             else:
-                # Fallback to default values if ONS is unavailable
                 logger.warning("No datasets found from ONS, using fallback data")
-                return {
-                    'current_load_mw': 68542,
-                    'forecast_load_mw': 70125,
-                    'timestamp': datetime.now().isoformat(),
-                    'regions': {
-                        'southeast': {'load_mw': 38245, 'percent': 55.8},
-                        'south': {'load_mw': 9876, 'percent': 14.4},
-                        'northeast': {'load_mw': 12543, 'percent': 18.3},
-                        'north': {'load_mw': 7878, 'percent': 11.5}
-                    },
-                    'data_source': 'Fallback data',
-                    'note': 'ONS API temporarily unavailable'
-                }
+                data_source = 'Fallback data'
+                note = 'ONS API temporarily unavailable'
+            
+            # Return data structure
+            # TODO: Parse actual consumption data from ONS dataset resources
+            return {
+                'current_load_mw': 68542,
+                'forecast_load_mw': 70125,
+                'timestamp': datetime.now().isoformat(),
+                'regions': {
+                    'southeast': {'load_mw': 38245, 'percent': 55.8},
+                    'south': {'load_mw': 9876, 'percent': 14.4},
+                    'northeast': {'load_mw': 12543, 'percent': 18.3},
+                    'north': {'load_mw': 7878, 'percent': 11.5}
+                },
+                'data_source': data_source,
+                'note': note
+            }
         except Exception as e:
             logger.error(f"Error fetching grid consumption: {str(e)}")
             return {'error': str(e)}
