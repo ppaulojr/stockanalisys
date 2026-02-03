@@ -164,7 +164,7 @@ See LICENSE file for details.
 
 ## Author / Autor
 
-Paulo Jr. (ppaulojr)
+Pedro Paulo Oliveira Jr. (ppaulojr)
 
 ## Notes / Observações
 
