@@ -118,10 +118,9 @@ curl http://localhost:5000/api/dashboard
 ## Data Sources / Fontes de Dados
 
 - **Stock Data**: Yahoo Finance API via yfinance library
-- **Energy Data**: Simulated data based on typical Brazilian grid operations
-  - **Note**: Real implementation would require API access to:
-    - ONS (Operador Nacional do Sistema Elétrico)
-    - CCEE (Câmara de Comercialização de Energia Elétrica)
+- **Energy Data**: Real data from ONS (Operador Nacional do Sistema Elétrico)
+  - **Note**: ONS provides free public API access at https://dados.ons.org.br/
+  - **Note**: CCEE data is simulated and would require API credentials for real implementation
 
 ## Project Structure / Estrutura do Projeto
 
@@ -169,10 +168,8 @@ Paulo Jr. (ppaulojr)
 
 ## Notes / Observações
 
-This project uses simulated data for Brazilian energy sector information. For production use with real data, you would need to:
+This project uses real data from ONS (Operador Nacional do Sistema Elétrico) which provides free public API access at https://dados.ons.org.br/. 
 
-1. Register and obtain API credentials from ONS (Operador Nacional do Sistema Elétrico)
-2. Register and obtain API credentials from CCEE (Câmara de Comercialização de Energia Elétrica)
-3. Update the `energy_fetcher.py` module to use real API endpoints
+CCEE (Câmara de Comercialização de Energia Elétrica) data is currently simulated. For production use with real CCEE data, you would need to register and obtain API credentials.
 
 The AXIA stock data is fetched in real-time from Yahoo Finance and reflects actual market data from B3 (Brazilian Stock Exchange).
