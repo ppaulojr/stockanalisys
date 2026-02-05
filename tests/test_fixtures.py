@@ -25,8 +25,7 @@ class TestONSClientFixtures(unittest.TestCase):
         
     def test_fixture_loading_enabled_via_constructor(self):
         """Test enabling fixtures via constructor parameter"""
-        client = ONSClient(timeout=10, fixtures_path=str(self.fixtures_path))
-        client.use_fixtures = True
+        client = ONSClient(timeout=10, fixtures_path=str(self.fixtures_path), use_fixtures=True)
         self.assertTrue(client.use_fixtures)
         self.assertEqual(client.fixtures_path, str(self.fixtures_path))
         

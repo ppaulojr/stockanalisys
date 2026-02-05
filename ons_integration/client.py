@@ -22,16 +22,16 @@ class ONSClient:
     
     BASE_URL = "https://dados.ons.org.br/api/3/action"
     
-    def __init__(self, timeout: int = 30, fixtures_path: Optional[str] = None):
+    def __init__(self, timeout: int = 30, fixtures_path: Optional[str] = None, use_fixtures: Optional[bool] = None):
         """
         Inicializa o cliente ONS
         
         Args:
             timeout: Tempo limite para requisições em segundos (padrão: 30)
             fixtures_path: Caminho para diretório de fixtures JSON para testes offline.
-                          Se não fornecido, verifica as variáveis de ambiente:
-                          - ONS_USE_FIXTURES: Se "true", usa fixtures ao invés da API real
-                          - ONS_FIXTURES_PATH: Caminho para o diretório de fixtures
+                          Se não fornecido, verifica a variável de ambiente ONS_FIXTURES_PATH.
+            use_fixtures: Se True, usa fixtures ao invés da API real.
+                         Se não fornecido, verifica a variável de ambiente ONS_USE_FIXTURES.
         """
         self.timeout = timeout
         self.session = requests.Session()
@@ -40,7 +40,10 @@ class ONSClient:
         })
         
         # Configure fixture loading for sandbox/offline testing
-        self.use_fixtures = os.environ.get("ONS_USE_FIXTURES", "").lower() == "true"
+        if use_fixtures is not None:
+            self.use_fixtures = use_fixtures
+        else:
+            self.use_fixtures = os.environ.get("ONS_USE_FIXTURES", "").lower() == "true"
         self.fixtures_path = fixtures_path or os.environ.get("ONS_FIXTURES_PATH", "")
     
     def _load_fixture(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
@@ -74,8 +77,13 @@ class ONSClient:
             try:
                 with open(fixture_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
-            except (json.JSONDecodeError, IOError) as e:
-                print(f"Warning: Failed to load fixture {fixture_file}: {e}")
+            except json.JSONDecodeError as e:
+                print(f"Warning: Invalid JSON in fixture file {fixture_file}. "
+                      f"Check file syntax: {e}")
+                return None
+            except IOError as e:
+                print(f"Warning: Cannot read fixture file {fixture_file}. "
+                      f"Check file permissions and path: {e}")
                 return None
         
         return None
