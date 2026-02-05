@@ -1,0 +1,31 @@
+{
+  "help": "https://dados.ons.org.br/api/3/action/help_show?name=datastore_search",
+  "success": true,
+  "result": {
+    "resource_id": "carga-energia-resource-001",
+    "fields": [
+      {"id": "data", "type": "timestamp"},
+      {"id": "sudeste", "type": "numeric"},
+      {"id": "sul", "type": "numeric"},
+      {"id": "nordeste", "type": "numeric"},
+      {"id": "norte", "type": "numeric"}
+    ],
+    "records": [
+      {
+        "data": "2024-12-15T14:30:00",
+        "sudeste": "39150",
+        "sul": "10234",
+        "nordeste": "13021",
+        "norte": "8245"
+      },
+      {
+        "data": "2024-12-15T14:00:00",
+        "sudeste": "38920",
+        "sul": "10156",
+        "nordeste": "12987",
+        "norte": "8198"
+      }
+    ],
+    "total": 2
+  }
+}

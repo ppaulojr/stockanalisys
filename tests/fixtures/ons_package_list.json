@@ -1,0 +1,11 @@
+{
+  "help": "https://dados.ons.org.br/api/3/action/help_show?name=package_list",
+  "success": true,
+  "result": [
+    "ear-subsistema",
+    "carga-energia",
+    "geracao-usina",
+    "balanco-energia",
+    "ena-subsistema"
+  ]
+}

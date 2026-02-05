@@ -3,8 +3,11 @@ ONS API Client
 Cliente para acessar dados da API do ONS (https://dados.ons.org.br/)
 """
 
+import json
+import os
 import requests
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import List, Optional, Dict, Any
 from .models import EnergyData, LoadData, GenerationData
 
@@ -19,18 +22,63 @@ class ONSClient:
     
     BASE_URL = "https://dados.ons.org.br/api/3/action"
     
-    def __init__(self, timeout: int = 30):
+    def __init__(self, timeout: int = 30, fixtures_path: Optional[str] = None):
         """
         Inicializa o cliente ONS
         
         Args:
             timeout: Tempo limite para requisições em segundos (padrão: 30)
+            fixtures_path: Caminho para diretório de fixtures JSON para testes offline.
+                          Se não fornecido, verifica as variáveis de ambiente:
+                          - ONS_USE_FIXTURES: Se "true", usa fixtures ao invés da API real
+                          - ONS_FIXTURES_PATH: Caminho para o diretório de fixtures
         """
         self.timeout = timeout
         self.session = requests.Session()
         self.session.headers.update({
             "User-Agent": "StockAnalysys-ONS-Integration/0.1.0"
         })
+        
+        # Configure fixture loading for sandbox/offline testing
+        self.use_fixtures = os.environ.get("ONS_USE_FIXTURES", "").lower() == "true"
+        self.fixtures_path = fixtures_path or os.environ.get("ONS_FIXTURES_PATH", "")
+    
+    def _load_fixture(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """
+        Carrega dados de fixture para testes offline
+        
+        Args:
+            endpoint: Endpoint da API (e.g., 'package_search')
+            params: Parâmetros da requisição (usados para encontrar fixture específica)
+            
+        Returns:
+            Dados do fixture ou None se não encontrado
+        """
+        if not self.fixtures_path:
+            return None
+        
+        fixtures_dir = Path(self.fixtures_path)
+        if not fixtures_dir.exists():
+            return None
+        
+        # Build fixture filename based on endpoint and params
+        fixture_name = f"ons_{endpoint}"
+        
+        # Add query parameter to filename if present (e.g., package_search_carga)
+        if params and 'q' in params:
+            fixture_name += f"_{params['q']}"
+        
+        fixture_file = fixtures_dir / f"{fixture_name}.json"
+        
+        if fixture_file.exists():
+            try:
+                with open(fixture_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError) as e:
+                print(f"Warning: Failed to load fixture {fixture_file}: {e}")
+                return None
+        
+        return None
     
     def _make_request(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
@@ -46,6 +94,14 @@ class ONSClient:
         Raises:
             requests.RequestException: Se houver erro na requisição
         """
+        # Check if fixtures should be used (for sandbox/offline testing)
+        if self.use_fixtures:
+            fixture_data = self._load_fixture(endpoint, params)
+            if fixture_data is not None:
+                return fixture_data
+            # If fixture not found and use_fixtures is true, raise error
+            raise Exception(f"Fixture not found for endpoint: {endpoint} with params: {params}")
+        
         url = f"{self.BASE_URL}/{endpoint}"
         
         try:
