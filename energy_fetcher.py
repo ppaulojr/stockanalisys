@@ -20,16 +20,29 @@ class EnergyDataFetcher:
         
     def get_reservoir_data(self):
         """
-        Get current reservoir levels data from ONS API
+        Get current reservoir levels data from ONS
+        
+        Uses the direct S3 access method based on:
+        https://github.com/ONSBR/DadosAbertos
         """
         try:
-            # Try to get real data from ONS API
+            # Try to get real data directly from ONS S3 (preferred method)
+            # Reference: https://github.com/ONSBR/DadosAbertos
+            parsed_data = self.ons_client.get_reservoir_data_from_s3()
+            
+            if parsed_data:
+                logger.info("Successfully retrieved reservoir data from ONS S3")
+                parsed_data['data_source'] = 'ONS S3'
+                parsed_data['note'] = 'Data retrieved directly from ONS S3 bucket'
+                return parsed_data
+            
+            # Fallback to CKAN API search
+            logger.info("S3 method failed, trying CKAN API search...")
             datasets = self.ons_client.search_datasets("reservatorio")
             
             # Check if ONS API is accessible
             ons_accessible = len(datasets) > 0
             
-            parsed_data = None
             if ons_accessible:
                 logger.info(f"Found {len(datasets)} reservoir datasets from ONS")
                 # Parse actual reservoir data from ONS dataset resources
@@ -126,16 +139,29 @@ class EnergyDataFetcher:
     
     def get_grid_consumption(self):
         """
-        Get current power consumption in the Brazilian grid from ONS API
+        Get current power consumption in the Brazilian grid from ONS
+        
+        Uses the direct S3 access method based on:
+        https://github.com/ONSBR/DadosAbertos
         """
         try:
-            # Try to get real data from ONS API
+            # Try to get real data directly from ONS S3 (preferred method)
+            # Reference: https://github.com/ONSBR/DadosAbertos
+            parsed_data = self.ons_client.get_consumption_data_from_s3()
+            
+            if parsed_data:
+                logger.info("Successfully retrieved consumption data from ONS S3")
+                parsed_data['data_source'] = 'ONS S3'
+                parsed_data['note'] = 'Data retrieved directly from ONS S3 bucket'
+                return parsed_data
+            
+            # Fallback to CKAN API search
+            logger.info("S3 method failed, trying CKAN API search...")
             datasets = self.ons_client.search_datasets("carga")
             
             # Check if ONS API is accessible
             ons_accessible = len(datasets) > 0
             
-            parsed_data = None
             if ons_accessible:
                 logger.info(f"Found {len(datasets)} load/consumption datasets from ONS")
                 # Parse actual consumption data from ONS dataset resources

@@ -146,5 +146,116 @@ class TestONSClientFixturesIntegration(unittest.TestCase):
             self.assertIn("resources", dataset)
 
 
+class TestONSClientS3Fixtures(unittest.TestCase):
+    """Tests for S3-based CSV fixture loading"""
+    
+    def setUp(self):
+        """Initial test setup"""
+        self.fixtures_path = Path(__file__).parent / "fixtures"
+    
+    def test_load_csv_fixture_ear_subsistema(self):
+        """Test loading EAR subsystem CSV fixture"""
+        client = ONSClient(timeout=10, fixtures_path=str(self.fixtures_path), use_fixtures=True)
+        
+        records = client._load_csv_fixture("ear_subsistema", "EAR_DIARIO_SUBSISTEMA")
+        
+        self.assertIsNotNone(records)
+        self.assertIsInstance(records, list)
+        self.assertGreater(len(records), 0)
+        
+        # Check expected columns
+        first_record = records[0]
+        self.assertIn("id_subsistema", first_record)
+        self.assertIn("nom_subsistema", first_record)
+    
+    def test_load_csv_fixture_carga_energia(self):
+        """Test loading energy load CSV fixture"""
+        client = ONSClient(timeout=10, fixtures_path=str(self.fixtures_path), use_fixtures=True)
+        
+        records = client._load_csv_fixture("carga_energia", "CARGA_ENERGIA")
+        
+        self.assertIsNotNone(records)
+        self.assertIsInstance(records, list)
+        self.assertGreater(len(records), 0)
+        
+        # Check expected columns
+        first_record = records[0]
+        self.assertIn("id_subsistema", first_record)
+        self.assertIn("val_cargaenergiamwmed", first_record)
+    
+    def test_parse_ear_records(self):
+        """Test parsing EAR records into reservoir data"""
+        client = ONSClient(timeout=10, fixtures_path=str(self.fixtures_path), use_fixtures=True)
+        
+        # Load fixture
+        records = client._load_csv_fixture("ear_subsistema", "EAR_DIARIO_SUBSISTEMA")
+        self.assertIsNotNone(records)
+        
+        # Parse records
+        result = client._parse_ear_records(records)
+        
+        self.assertIsNotNone(result)
+        self.assertIn("southeast", result)
+        self.assertIn("south", result)
+        self.assertIn("northeast", result)
+        self.assertIn("north", result)
+        
+        # Check structure of each region
+        for region in ["southeast", "south", "northeast", "north"]:
+            self.assertIn("level_percent", result[region])
+            self.assertIn("capacity_mwmed", result[region])
+            self.assertIn("status", result[region])
+            self.assertIn("timestamp", result[region])
+    
+    def test_parse_carga_records(self):
+        """Test parsing load records into consumption data"""
+        client = ONSClient(timeout=10, fixtures_path=str(self.fixtures_path), use_fixtures=True)
+        
+        # Load fixture
+        records = client._load_csv_fixture("carga_energia", "CARGA_ENERGIA")
+        self.assertIsNotNone(records)
+        
+        # Parse records
+        result = client._parse_carga_records(records)
+        
+        self.assertIsNotNone(result)
+        self.assertIn("current_load_mw", result)
+        self.assertIn("forecast_load_mw", result)
+        self.assertIn("regions", result)
+        
+        # Check regions
+        regions = result["regions"]
+        self.assertIn("southeast", regions)
+        self.assertIn("south", regions)
+        
+        # Verify percentages sum to ~100%
+        total_percent = sum(r["percent"] for r in regions.values())
+        self.assertAlmostEqual(total_percent, 100.0, places=0)
+    
+    def test_get_reservoir_data_from_s3_with_fixtures(self):
+        """Test full S3 reservoir data retrieval with fixtures"""
+        client = ONSClient(timeout=10, fixtures_path=str(self.fixtures_path), use_fixtures=True)
+        
+        result = client.get_reservoir_data_from_s3()
+        
+        self.assertIsNotNone(result)
+        self.assertIn("southeast", result)
+        
+        # Check that level percentages are reasonable
+        se_level = result["southeast"]["level_percent"]
+        self.assertGreater(se_level, 0)
+        self.assertLess(se_level, 100)
+    
+    def test_get_consumption_data_from_s3_with_fixtures(self):
+        """Test full S3 consumption data retrieval with fixtures"""
+        client = ONSClient(timeout=10, fixtures_path=str(self.fixtures_path), use_fixtures=True)
+        
+        result = client.get_consumption_data_from_s3()
+        
+        self.assertIsNotNone(result)
+        self.assertIn("current_load_mw", result)
+        self.assertGreater(result["current_load_mw"], 0)
+
+
 if __name__ == "__main__":
     unittest.main()
