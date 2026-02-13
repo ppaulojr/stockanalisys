@@ -722,6 +722,9 @@ class ONSClient:
         }
         
         # Capacities by region (MWmed)
+        # Source: ONS EAR datasets (val_eararmazenavel_mwmes values)
+        # Reference: https://dados.ons.org.br/dataset/ear-diario-por-subsistema
+        # Note: These are approximate maximum storage values that may change over time
         capacities = {
             "southeast": 208355,
             "south": 19768,
@@ -731,6 +734,14 @@ class ONSClient:
         
         result = {}
         latest_by_region = {}
+        
+        def parse_date_str(date_str: str) -> str:
+            """Normalize date string for comparison (handles various formats)"""
+            if not date_str:
+                return ""
+            # ONS data typically uses ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
+            # Return as-is since ISO formats sort correctly as strings
+            return date_str.strip()
         
         # Find the latest record for each subsystem
         for record in records:
@@ -746,7 +757,7 @@ class ONSClient:
                 continue
             
             # Get date for comparison
-            date_str = (
+            date_str = parse_date_str(
                 record.get("din_instante") or 
                 record.get("dat_referencia") or 
                 record.get("data") or
@@ -873,6 +884,14 @@ class ONSClient:
         
         latest_by_region = {}
         
+        def parse_date_str(date_str: str) -> str:
+            """Normalize date string for comparison (handles various formats)"""
+            if not date_str:
+                return ""
+            # ONS data typically uses ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
+            # Return as-is since ISO formats sort correctly as strings
+            return date_str.strip()
+        
         # Find the latest record for each subsystem
         for record in records:
             subsystem_id = (
@@ -885,7 +904,7 @@ class ONSClient:
             if not region_key:
                 continue
             
-            date_str = (
+            date_str = parse_date_str(
                 record.get("din_instante") or 
                 record.get("data") or
                 ""
