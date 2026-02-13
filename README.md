@@ -122,17 +122,73 @@ curl http://localhost:5000/api/dashboard
   - **Note**: ONS provides free public API access at https://dados.ons.org.br/
   - **Note**: CCEE data is simulated and would require API credentials for real implementation
 
+## Testing in Sandbox/Offline Environments
+
+The ONS client supports fixture-based testing for environments without network access to the real ONS API (e.g., CI/CD pipelines, sandbox environments, or offline development).
+
+### Enabling Fixture Mode
+
+Set the following environment variables:
+
+```bash
+# Enable fixture loading instead of real API calls
+export ONS_USE_FIXTURES=true
+
+# Path to the directory containing fixture JSON files
+export ONS_FIXTURES_PATH=/path/to/tests/fixtures
+```
+
+Or configure programmatically:
+
+```python
+from ons_integration import ONSClient
+
+# Use fixtures from a specific directory
+client = ONSClient(fixtures_path="/path/to/tests/fixtures")
+client.use_fixtures = True
+
+# Now all API calls will use local fixture files
+datasets = client.search_datasets("reservatorio")
+```
+
+### Available Fixtures
+
+The `tests/fixtures/` directory contains sample ONS API responses:
+
+| Fixture File | Simulates |
+|--------------|-----------|
+| `ons_package_list.json` | List of all datasets |
+| `ons_package_search_reservatorio.json` | Reservoir dataset search |
+| `ons_package_search_carga.json` | Load/consumption dataset search |
+| `ons_datastore_search_reservoir.json` | Reservoir data records |
+| `ons_datastore_search_carga.json` | Load data records |
+
+See `tests/fixtures/README.md` for detailed documentation on creating custom fixtures.
+
 ## Project Structure / Estrutura do Projeto
 
 ```
 stockanalisys/
-├── app.py                 # Flask application and API routes
-├── axia_fetcher.py        # AXIA stock data fetcher
-├── energy_fetcher.py      # Brazilian energy data fetcher
-├── requirements.txt       # Python dependencies
+├── app.py                   # Flask application and API routes
+├── axia_fetcher.py          # AXIA stock data fetcher
+├── energy_fetcher.py        # Brazilian energy data fetcher
+├── example_ons.py           # Example script for ONS integration
+├── requirements.txt         # Python dependencies
+├── ons_integration/         # ONS API integration module
+│   ├── __init__.py
+│   ├── client.py            # ONS API client with fixture support
+│   └── models.py            # Data models
+├── tests/
+│   ├── fixtures/            # Sample ONS API responses for offline testing
+│   │   ├── README.md        # Fixture documentation
+│   │   └── *.json           # JSON fixture files
+│   ├── test_client.py       # Client tests
+│   ├── test_fixtures.py     # Fixture loading tests
+│   ├── test_models.py       # Model tests
+│   └── test_ons_parsing.py  # Parsing tests
 ├── templates/
-│   └── index.html        # Dashboard HTML template
-└── README.md             # This file
+│   └── index.html           # Dashboard HTML template
+└── README.md                # This file
 ```
 
 ## Deployment / Implantação

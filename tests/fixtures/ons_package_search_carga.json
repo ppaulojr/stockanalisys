@@ -1,0 +1,29 @@
+{
+  "help": "https://dados.ons.org.br/api/3/action/help_show?name=package_search",
+  "success": true,
+  "result": {
+    "count": 1,
+    "results": [
+      {
+        "id": "carga-energia",
+        "name": "carga-energia",
+        "title": "Carga de Energia - Sistema Interligado Nacional",
+        "notes": "Dados de carga de energia do Sistema Interligado Nacional, por subsistema.",
+        "resources": [
+          {
+            "id": "carga-energia-resource-001",
+            "name": "carga_energia_subsistema.csv",
+            "format": "CSV",
+            "url": "https://dados.ons.org.br/dataset/carga-energia/resource/carga_energia.csv",
+            "description": "Dados de carga de energia por subsistema"
+          }
+        ],
+        "organization": {
+          "id": "ons-org-001",
+          "name": "ons",
+          "title": "ONS - Operador Nacional do Sistema Elétrico"
+        }
+      }
+    ]
+  }
+}

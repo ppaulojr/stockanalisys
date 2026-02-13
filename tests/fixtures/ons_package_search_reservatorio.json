@@ -1,0 +1,29 @@
+{
+  "help": "https://dados.ons.org.br/api/3/action/help_show?name=package_search",
+  "success": true,
+  "result": {
+    "count": 1,
+    "results": [
+      {
+        "id": "ear-subsistema",
+        "name": "ear-subsistema",
+        "title": "EAR - Energia Armazenada nos Reservatórios por Subsistema",
+        "notes": "Energia armazenada nos reservatórios do Sistema Interligado Nacional, por subsistema.",
+        "resources": [
+          {
+            "id": "ear-subsistema-resource-001",
+            "name": "ear_subsistema_reservatorio.csv",
+            "format": "CSV",
+            "url": "https://dados.ons.org.br/dataset/ear-subsistema/resource/ear_subsistema.csv",
+            "description": "Dados de energia armazenada por subsistema"
+          }
+        ],
+        "organization": {
+          "id": "ons-org-001",
+          "name": "ons",
+          "title": "ONS - Operador Nacional do Sistema Elétrico"
+        }
+      }
+    ]
+  }
+}

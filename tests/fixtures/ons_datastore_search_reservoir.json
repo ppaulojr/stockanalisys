@@ -1,0 +1,31 @@
+{
+  "help": "https://dados.ons.org.br/api/3/action/help_show?name=datastore_search",
+  "success": true,
+  "result": {
+    "resource_id": "ear-subsistema-resource-001",
+    "fields": [
+      {"id": "data", "type": "date"},
+      {"id": "sudeste", "type": "numeric"},
+      {"id": "sul", "type": "numeric"},
+      {"id": "nordeste", "type": "numeric"},
+      {"id": "norte", "type": "numeric"}
+    ],
+    "records": [
+      {
+        "data": "2024-12-15",
+        "sudeste": "68.5",
+        "sul": "62.3",
+        "nordeste": "45.8",
+        "norte": "73.2"
+      },
+      {
+        "data": "2024-12-14",
+        "sudeste": "68.2",
+        "sul": "61.9",
+        "nordeste": "45.5",
+        "norte": "72.8"
+      }
+    ],
+    "total": 2
+  }
+}
