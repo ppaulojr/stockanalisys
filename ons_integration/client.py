@@ -422,13 +422,48 @@ class ONSClient:
         
         return generation_data
     
-    def get_dataset_resource_data(self, resource_id: str, limit: int = 100) -> Optional[List[Dict[str, Any]]]:
+    def _download_resource_csv(self, resource_url: str, limit: int = 100) -> Optional[List[Dict[str, Any]]]:
+        """
+        Download CSV data directly from a resource URL
+        
+        Args:
+            resource_url: URL to download the CSV from
+            limit: Número máximo de registros a retornar (padrão: 100)
+            
+        Returns:
+            List of records as dictionaries or None if download fails
+        """
+        try:
+            response = self.session.get(resource_url, timeout=self.timeout)
+            response.raise_for_status()
+            
+            content = response.content.decode('utf-8')
+            # Try semicolon delimiter first (ONS standard), then comma
+            for delimiter in [';', ',']:
+                try:
+                    reader = csv.DictReader(io.StringIO(content), delimiter=delimiter)
+                    records = list(reader)
+                    if records and len(records[0]) > 1:
+                        return records[:limit] if limit else records
+                except Exception:
+                    continue
+            
+            return None
+        except Exception as e:
+            print(f"Aviso: Erro ao baixar CSV do recurso: {str(e)}")
+            return None
+
+    def get_dataset_resource_data(self, resource_id: str, limit: int = 100, resource_url: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
         """
         Obtém dados de um recurso específico de um dataset
+        
+        Tenta primeiro o endpoint datastore_search da API CKAN.
+        Se falhar (ex: 404), tenta baixar diretamente da URL do recurso.
         
         Args:
             resource_id: ID do recurso
             limit: Número máximo de registros a retornar (padrão: 100)
+            resource_url: URL direta do recurso (usada como fallback se datastore_search falhar)
             
         Returns:
             Dados do recurso ou None se não encontrado
@@ -442,10 +477,14 @@ class ONSClient:
             if result.get("success"):
                 return result.get("result", {}).get("records", [])
             
-            return None
-        except Exception as e:
-            print(f"Aviso: Erro ao obter dados do recurso {resource_id}: {str(e)}")
-            return None
+        except Exception:
+            pass
+        
+        # Fallback: try downloading directly from resource URL
+        if resource_url:
+            return self._download_resource_csv(resource_url, limit)
+        
+        return None
     
     def parse_reservoir_data(self, datasets: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """
@@ -475,8 +514,9 @@ class ONSClient:
                     for keyword in ["reservatorio", "ear", "armazenamento"]
                 ):
                     resource_id = resource.get("id")
+                    resource_url = resource.get("url")
                     if resource_id:
-                        records = self.get_dataset_resource_data(resource_id, limit=10)
+                        records = self.get_dataset_resource_data(resource_id, limit=10, resource_url=resource_url)
                         
                         if records and len(records) > 0:
                             # Parse o registro mais recente
@@ -582,8 +622,9 @@ class ONSClient:
                     for keyword in ["carga", "demanda", "consumo", "load"]
                 ):
                     resource_id = resource.get("id")
+                    resource_url = resource.get("url")
                     if resource_id:
-                        records = self.get_dataset_resource_data(resource_id, limit=10)
+                        records = self.get_dataset_resource_data(resource_id, limit=10, resource_url=resource_url)
                         
                         if records and len(records) > 0:
                             # Parse o registro mais recente
