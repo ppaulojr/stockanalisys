@@ -198,6 +198,72 @@ class TestONSDataParsing(unittest.TestCase):
             )
             
             self.assertEqual(len(result), 50)
+    
+    def test_get_dataset_resource_data_fallback_to_url(self):
+        """Testa fallback para download direto quando datastore_search falha com 404"""
+        with patch.object(self.client, '_make_request', side_effect=Exception("404 NOT FOUND")):
+            with patch.object(self.client, '_download_resource_csv', return_value=[{"data": "fallback"}]) as mock_csv:
+                result = self.client.get_dataset_resource_data(
+                    "bb510358-aef2-463a-8a48-b03e48c00171",
+                    limit=10,
+                    resource_url="https://example.com/data.csv"
+                )
+                
+                mock_csv.assert_called_once_with("https://example.com/data.csv", 10)
+                self.assertIsNotNone(result)
+                self.assertEqual(result[0]["data"], "fallback")
+    
+    def test_get_dataset_resource_data_no_url_returns_none(self):
+        """Testa que retorna None quando datastore_search falha e não há URL"""
+        with patch.object(self.client, '_make_request', side_effect=Exception("404 NOT FOUND")):
+            result = self.client.get_dataset_resource_data(
+                "bb510358-aef2-463a-8a48-b03e48c00171",
+                limit=10
+            )
+            
+            self.assertIsNone(result)
+    
+    def test_parse_reservoir_data_passes_resource_url(self):
+        """Testa que parse_reservoir_data passa a URL do recurso para get_dataset_resource_data"""
+        mock_datasets = [{
+            "name": "ear-reservatorios",
+            "resources": [{
+                "id": "resource-123",
+                "name": "ear_subsistema.csv",
+                "format": "CSV",
+                "url": "https://example.com/ear_subsistema.csv"
+            }]
+        }]
+        
+        mock_records = [{"sudeste": "65.4"}]
+        
+        with patch.object(self.client, 'get_dataset_resource_data', return_value=mock_records) as mock_get:
+            self.client.parse_reservoir_data(mock_datasets)
+            mock_get.assert_called_once_with(
+                "resource-123", limit=10,
+                resource_url="https://example.com/ear_subsistema.csv"
+            )
+    
+    def test_parse_consumption_data_passes_resource_url(self):
+        """Testa que parse_consumption_data passa a URL do recurso para get_dataset_resource_data"""
+        mock_datasets = [{
+            "name": "carga-sistema",
+            "resources": [{
+                "id": "resource-456",
+                "name": "carga_regiao.csv",
+                "format": "CSV",
+                "url": "https://example.com/carga.csv"
+            }]
+        }]
+        
+        mock_records = [{"sudeste": "38245"}]
+        
+        with patch.object(self.client, 'get_dataset_resource_data', return_value=mock_records) as mock_get:
+            self.client.parse_consumption_data(mock_datasets)
+            mock_get.assert_called_once_with(
+                "resource-456", limit=10,
+                resource_url="https://example.com/carga.csv"
+            )
 
 
 class TestEnergyFetcherWithParsing(unittest.TestCase):
