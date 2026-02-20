@@ -20,7 +20,7 @@ ONS provides data through two methods:
 ### 1. Direct S3 Access (Preferred)
 
 Data is downloaded directly from ONS S3 buckets as CSV files:
-- **Base URL**: `https://ons-dl-prod-opendata.s3.amazonaws.com/dataset/{dataset_name}/{filename}.csv`
+- **Base URL**: `https://ons-aws-prod-opendata.s3.amazonaws.com/dataset/{dataset_name}/{filename}.csv`
 - **Reference**: https://github.com/ONSBR/DadosAbertos
 
 ### 2. CKAN API (Metadata)
@@ -117,7 +117,7 @@ Based on: https://github.com/ONSBR/DadosAbertos
 
 1. Download real data from ONS S3:
    ```
-   https://ons-dl-prod-opendata.s3.amazonaws.com/dataset/{dataset_name}/{filename}.csv
+   https://ons-aws-prod-opendata.s3.amazonaws.com/dataset/{dataset_name}/{filename}.csv
    ```
 2. Save as `ons_{dataset_key}.csv` in this directory
 3. Use `;` as the delimiter (ONS standard)
@@ -132,4 +132,4 @@ Based on: https://github.com/ONSBR/DadosAbertos
 
 - **Official Repository**: https://github.com/ONSBR/DadosAbertos
 - **Data Portal**: https://dados.ons.org.br/
-- **S3 Bucket**: https://ons-dl-prod-opendata.s3.amazonaws.com/dataset/
+- **S3 Bucket**: https://ons-aws-prod-opendata.s3.amazonaws.com/dataset/

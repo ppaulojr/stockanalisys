@@ -32,14 +32,14 @@ class ONSClient:
     
     # Direct S3 data access (actual data files)
     # Reference: https://github.com/ONSBR/DadosAbertos
-    S3_BASE_URL = "https://ons-dl-prod-opendata.s3.amazonaws.com/dataset"
+    S3_BASE_URL = "https://ons-aws-prod-opendata.s3.amazonaws.com/dataset"
     
     # Known dataset paths based on ONSBR/DadosAbertos examples
     DATASET_PATHS = {
         "ear_subsistema": "ear_subsistema_di",  # EAR by subsystem (reservoir energy storage)
         "ear_reservatorio": "ear_reservatorio_di",  # EAR by reservoir
         "ear_bacia": "ear_bacia_di",  # EAR by basin
-        "carga_energia": "carga_energia",  # Energy load
+        "carga_energia": "carga_energia_di",  # Energy load (daily)
         "cmo_semihorario": "cmo_tm",  # CMO (Marginal Operating Cost) 
         "reservatorio": "reservatorio",  # Reservoir data
         "geracao": "geracao_usina",  # Generation by plant
@@ -230,7 +230,7 @@ class ONSClient:
         Get EAR (Stored Energy) data by subsystem directly from ONS S3
         
         Reference: https://github.com/ONSBR/DadosAbertos
-        Dataset URL pattern: https://ons-dl-prod-opendata.s3.amazonaws.com/dataset/ear_subsistema_di/EAR_DIARIO_SUBSISTEMA_{year}.csv
+        Dataset URL pattern: https://ons-aws-prod-opendata.s3.amazonaws.com/dataset/ear_subsistema_di/EAR_DIARIO_SUBSISTEMA_{year}.csv
         
         Args:
             year: Year of data to fetch (defaults to current year)
@@ -273,7 +273,7 @@ class ONSClient:
         Get reservoir metadata directly from ONS S3
         
         Reference: https://github.com/ONSBR/DadosAbertos/blob/main/Avaliacao_da_operacao/Reservatorio.ipynb
-        Dataset URL: https://ons-dl-prod-opendata.s3.amazonaws.com/dataset/reservatorio/RESERVATORIOS.csv
+        Dataset URL: https://ons-aws-prod-opendata.s3.amazonaws.com/dataset/reservatorio/RESERVATORIOS.csv
         
         Returns:
             List of reservoir records
