@@ -23,6 +23,15 @@ class TestONSClient(unittest.TestCase):
             "StockAnalysys-ONS-Integration/0.1.0"
         )
     
+    def test_s3_base_url(self):
+        """Testa que a URL base do S3 aponta para o bucket correto"""
+        self.assertIn("ons-aws-prod-opendata", ONSClient.S3_BASE_URL)
+        self.assertNotIn("ons-dl-prod-opendata", ONSClient.S3_BASE_URL)
+    
+    def test_carga_energia_dataset_path(self):
+        """Testa que o path do dataset carga_energia usa o sufixo _di"""
+        self.assertEqual(ONSClient.DATASET_PATHS["carga_energia"], "carga_energia_di")
+    
     @patch('ons_integration.client.requests.Session.get')
     def test_make_request_success(self, mock_get):
         """Testa requisição bem-sucedida"""
