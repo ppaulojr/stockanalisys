@@ -801,6 +801,7 @@ class ONSClient:
             date_str = parse_date_str(
                 record.get("din_instante") or 
                 record.get("dat_referencia") or 
+                record.get("ear_data") or
                 record.get("data") or
                 ""
             )
@@ -819,7 +820,7 @@ class ONSClient:
             
             # Try to get EAR percentage (multiple possible column names)
             ear_percent = None
-            for col in ["val_earverif_percentual", "ear_verif_percentual", "val_ear_percentual"]:
+            for col in ["val_earverif_percentual", "ear_verif_percentual", "val_ear_percentual", "ear_verif_subsistema_percentual"]:
                 if col in record and record[col]:
                     try:
                         # Handle comma as decimal separator
@@ -834,7 +835,7 @@ class ONSClient:
                 ear_verif = None
                 ear_max = None
                 
-                for col in ["val_earverif_mwmes", "ear_verif_subsistema"]:
+                for col in ["val_earverif_mwmes", "ear_verif_subsistema", "ear_verif_subsistema_mwmes"]:
                     if col in record and record[col]:
                         try:
                             val_str = str(record[col]).replace(",", ".")
@@ -933,7 +934,7 @@ class ONSClient:
             # Return as-is since ISO formats sort correctly as strings
             return date_str.strip()
         
-        # Find the latest record for each subsystem
+        # Find the latest record for each subsystem (with valid load values)
         for record in records:
             subsystem_id = (
                 record.get("id_subsistema") or 
@@ -943,6 +944,15 @@ class ONSClient:
             
             region_key = subsystem_mapping.get(subsystem_id)
             if not region_key:
+                continue
+            
+            # Skip records with empty load values
+            has_value = False
+            for col in ["val_cargaenergiamwmed", "val_carga", "carga"]:
+                if col in record and record[col]:
+                    has_value = True
+                    break
+            if not has_value:
                 continue
             
             date_str = parse_date_str(

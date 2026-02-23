@@ -274,9 +274,10 @@ class TestEnergyFetcherWithParsing(unittest.TestCase):
         from energy_fetcher import EnergyDataFetcher
         self.fetcher = EnergyDataFetcher()
     
+    @patch('ons_integration.client.ONSClient.get_reservoir_data_from_s3', return_value=None)
     @patch('ons_integration.client.ONSClient.search_datasets')
     @patch('ons_integration.client.ONSClient.parse_reservoir_data')
-    def test_get_reservoir_data_with_successful_parsing(self, mock_parse, mock_search):
+    def test_get_reservoir_data_with_successful_parsing(self, mock_parse, mock_search, mock_s3):
         """Testa obtenção de dados quando parsing é bem-sucedido"""
         # Mock de datasets encontrados
         mock_search.return_value = [{"name": "test-dataset"}]
@@ -297,9 +298,10 @@ class TestEnergyFetcherWithParsing(unittest.TestCase):
         # Verificar que os dados parseados estão presentes
         self.assertEqual(result["southeast"]["level_percent"], 70.0)
     
+    @patch('ons_integration.client.ONSClient.get_reservoir_data_from_s3', return_value=None)
     @patch('ons_integration.client.ONSClient.search_datasets')
     @patch('ons_integration.client.ONSClient.parse_reservoir_data')
-    def test_get_reservoir_data_parsing_fails(self, mock_parse, mock_search):
+    def test_get_reservoir_data_parsing_fails(self, mock_parse, mock_search, mock_s3):
         """Testa fallback quando parsing falha"""
         # Mock de datasets encontrados mas parsing retorna None
         mock_search.return_value = [{"name": "test-dataset"}]
@@ -312,9 +314,10 @@ class TestEnergyFetcherWithParsing(unittest.TestCase):
         self.assertEqual(result["data_source"], "Fallback data")
         self.assertIn("not recognized", result["note"].lower())
     
+    @patch('ons_integration.client.ONSClient.get_consumption_data_from_s3', return_value=None)
     @patch('ons_integration.client.ONSClient.search_datasets')
     @patch('ons_integration.client.ONSClient.parse_consumption_data')
-    def test_get_consumption_data_with_successful_parsing(self, mock_parse, mock_search):
+    def test_get_consumption_data_with_successful_parsing(self, mock_parse, mock_search, mock_s3):
         """Testa obtenção de consumo quando parsing é bem-sucedido"""
         # Mock de datasets encontrados
         mock_search.return_value = [{"name": "test-dataset"}]
