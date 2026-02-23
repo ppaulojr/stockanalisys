@@ -3,14 +3,14 @@ Integration tests for ONS S3 data retrieval.
 
 These tests make real network calls to the ONS S3 bucket at
 https://ons-aws-prod-opendata.s3.amazonaws.com
-and verify that the client correctly downloads and parses the CSV data.
+and the CKAN API at https://dados.ons.org.br
+to verify that the client correctly downloads and parses the CSV data.
 
 Previously these tests could not run due to firewall restrictions.
-The S3 URLs have now been added to the allowlist.
 """
 
+import requests
 import unittest
-from datetime import datetime
 from ons_integration.client import ONSClient
 
 
@@ -91,10 +91,9 @@ class TestONSS3Integration(unittest.TestCase):
 
     def test_download_csv_data_with_previous_year(self):
         """Test downloading CSV data for previous year"""
-        prev_year = datetime.now().year - 1
-        records = self.client.get_ear_subsistema(year=prev_year)
+        records = self.client.get_ear_subsistema(year=2025)
 
-        self.assertIsNotNone(records, f"Should download EAR data for {prev_year}")
+        self.assertIsNotNone(records, "Should download EAR data for 2025")
         self.assertGreater(len(records), 0)
 
 
@@ -135,7 +134,6 @@ class TestONSCKANIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Check if CKAN API is reachable before running tests"""
-        import requests
         try:
             r = requests.get(
                 "https://dados.ons.org.br/api/3/action/package_list",
