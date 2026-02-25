@@ -2,6 +2,8 @@
 Data fetcher module for AXIA stock prices from Brazilian stock exchange (B3)
 """
 import yfinance as yf
+import requests
+import certifi
 from datetime import datetime
 import logging
 
@@ -17,6 +19,9 @@ class AxiaDataFetcher:
             'AXIA6': 'AXIA6.SA',  # Preferred shares class A
             'AXIA7': 'AXIA7.SA',  # Preferred shares class B
         }
+        # Create a session with proper SSL certificate verification
+        self.session = requests.Session()
+        self.session.verify = certifi.where()
     
     def get_current_prices(self):
         """Get current prices for all AXIA stock classes"""
@@ -24,7 +29,7 @@ class AxiaDataFetcher:
         
         for name, symbol in self.symbols.items():
             try:
-                ticker = yf.Ticker(symbol)
+                ticker = yf.Ticker(symbol, session=self.session)
                 hist = ticker.history(period='1d')
                 
                 if not hist.empty:
@@ -62,7 +67,7 @@ class AxiaDataFetcher:
                 return None
             
             symbol = self.symbols[symbol_name]
-            ticker = yf.Ticker(symbol)
+            ticker = yf.Ticker(symbol, session=self.session)
             hist = ticker.history(period=period)
             
             if hist.empty:
