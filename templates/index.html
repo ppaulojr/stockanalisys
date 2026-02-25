@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AXIA & Brazilian Energy Dashboard</title>
+    <script src="/static/js/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -224,6 +225,14 @@
                 <button class="refresh-btn" onclick="loadConsumption(true)">Refresh Data</button>
             </div>
         </div>
+
+        <!-- Weather Chart (full width) -->
+        <div class="card" style="margin-bottom: 20px;">
+            <h2>🌡️ Brazil Average Temperature &amp; Precipitation</h2>
+            <canvas id="weather-chart"></canvas>
+            <div id="weather-note"></div>
+            <button class="refresh-btn" onclick="loadWeather(true)">Refresh Data</button>
+        </div>
     </div>
     
     <script>
@@ -371,12 +380,83 @@
             }
         }
         
+        // Load weather data
+        let weatherChart = null;
+        async function loadWeather(force = false) {
+            try {
+                const url = force ? '/api/energy/weather?force=true' : '/api/energy/weather';
+                const response = await fetch(url);
+                const data = await response.json();
+
+                const ctx = document.getElementById('weather-chart').getContext('2d');
+                if (weatherChart) {
+                    weatherChart.destroy();
+                }
+                weatherChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.months,
+                        datasets: [
+                            {
+                                label: 'Temperature (°C)',
+                                data: data.temperature.values,
+                                type: 'line',
+                                borderColor: '#e74c3c',
+                                backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                                yAxisID: 'y-temp',
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: '#e74c3c'
+                            },
+                            {
+                                label: 'Precipitation (mm)',
+                                data: data.precipitation.values,
+                                type: 'bar',
+                                backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                                borderColor: '#667eea',
+                                borderWidth: 1,
+                                yAxisID: 'y-precip'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            'y-temp': {
+                                type: 'linear',
+                                position: 'left',
+                                title: { display: true, text: 'Temperature (°C)' },
+                                min: 0
+                            },
+                            'y-precip': {
+                                type: 'linear',
+                                position: 'right',
+                                title: { display: true, text: 'Precipitation (mm)' },
+                                min: 0,
+                                grid: { drawOnChartArea: false }
+                            }
+                        }
+                    }
+                });
+
+                if (data.note) {
+                    document.getElementById('weather-note').innerHTML =
+                        '<div class="note">' + data.note + '</div>';
+                }
+            } catch (error) {
+                document.getElementById('weather-note').innerHTML =
+                    '<div class="error">Error loading weather data: ' + error.message + '</div>';
+            }
+        }
+
         // Load all data on page load
         window.onload = function() {
             loadAxiaPrices();
             loadReservoirs();
             loadPLD();
             loadConsumption();
+            loadWeather();
         };
     </script>
 </body>

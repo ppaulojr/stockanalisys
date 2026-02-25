@@ -367,6 +367,45 @@ class TestEnergyFetcherPLD(unittest.TestCase):
         self.assertEqual(result['data_source'], 'Fallback data')
 
 
+class TestEnergyFetcherWeather(unittest.TestCase):
+    """Tests for EnergyDataFetcher weather data"""
+
+    def setUp(self):
+        """Set up fetcher instance"""
+        from energy_fetcher import EnergyDataFetcher
+        self.fetcher = EnergyDataFetcher()
+
+    def test_get_weather_data_returns_twelve_months(self):
+        """Test that weather data contains 12 monthly entries"""
+        result = self.fetcher.get_weather_data()
+        self.assertEqual(len(result['months']), 12)
+        self.assertEqual(len(result['temperature']['values']), 12)
+        self.assertEqual(len(result['precipitation']['values']), 12)
+
+    def test_get_weather_data_structure(self):
+        """Test that weather data has the expected structure"""
+        result = self.fetcher.get_weather_data()
+        self.assertIn('months', result)
+        self.assertIn('temperature', result)
+        self.assertIn('precipitation', result)
+        self.assertIn('data_source', result)
+        self.assertIn('note', result)
+        self.assertIn('values', result['temperature'])
+        self.assertIn('unit', result['temperature'])
+        self.assertIn('values', result['precipitation'])
+        self.assertIn('unit', result['precipitation'])
+
+    def test_get_weather_data_reasonable_values(self):
+        """Test that temperature and precipitation values are within reasonable ranges"""
+        result = self.fetcher.get_weather_data()
+        for temp in result['temperature']['values']:
+            self.assertGreater(temp, 0)
+            self.assertLess(temp, 50)
+        for precip in result['precipitation']['values']:
+            self.assertGreaterEqual(precip, 0)
+            self.assertLess(precip, 1000)
+
+
 class TestCCEEClientFixtures(unittest.TestCase):
     """Tests for CCEE client using fixture files"""
 
@@ -429,6 +468,48 @@ class TestCCEEClientFixtures(unittest.TestCase):
         """Test that missing fixture raises error when fixtures are enabled"""
         with self.assertRaises(Exception):
             self.client._make_request("nonexistent_endpoint")
+
+
+class TestEnergyFetcherWeatherCache(unittest.TestCase):
+    """Tests for EnergyDataFetcher weather data caching"""
+
+    def setUp(self):
+        """Set up fetcher instance with mocked dependencies"""
+        from unittest.mock import patch
+        with patch('energy_fetcher.ONSClient'), patch('energy_fetcher.CCEEClient'):
+            from energy_fetcher import EnergyDataFetcher
+            self.fetcher = EnergyDataFetcher()
+
+    def test_weather_cache_is_empty_on_init(self):
+        """Weather cache should be None when the fetcher is first created"""
+        self.assertIsNone(self.fetcher._weather_cache)
+        self.assertIsNone(self.fetcher._weather_cache_time)
+
+    def test_get_weather_data_stores_result_in_cache(self):
+        """get_weather_data should populate the cache after computation"""
+        result = self.fetcher.get_weather_data()
+        self.assertIsNotNone(self.fetcher._weather_cache)
+        self.assertIsNotNone(self.fetcher._weather_cache_time)
+        self.assertEqual(result, self.fetcher._weather_cache)
+
+    def test_get_weather_data_returns_cache_when_fresh(self):
+        """get_weather_data should return cached data if it is less than CACHE_TTL old"""
+        from datetime import datetime
+        sample_weather = {'months': ['Jan'], 'temperature': {'values': [27.0]}, 'precipitation': {'values': [200]}}
+        self.fetcher._weather_cache = sample_weather
+        self.fetcher._weather_cache_time = datetime.now()
+        result = self.fetcher.get_weather_data()
+        self.assertEqual(result, sample_weather)
+
+    def test_get_weather_data_bypasses_cache_when_force(self):
+        """get_weather_data(force=True) should recompute even if cache is fresh"""
+        from datetime import datetime
+        stale = {'months': ['old'], 'temperature': {'values': [0]}, 'precipitation': {'values': [0]}}
+        self.fetcher._weather_cache = stale
+        self.fetcher._weather_cache_time = datetime.now()
+        result = self.fetcher.get_weather_data(force=True)
+        self.assertNotEqual(result['months'], ['old'])
+        self.assertEqual(len(result['months']), 12)
 
 
 if __name__ == "__main__":

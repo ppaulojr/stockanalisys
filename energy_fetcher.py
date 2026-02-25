@@ -28,6 +28,8 @@ class EnergyDataFetcher:
         self._pld_cache_time = None
         self._consumption_cache = None
         self._consumption_cache_time = None
+        self._weather_cache = None
+        self._weather_cache_time = None
         
     def get_reservoir_data(self, force=False):
         """
@@ -182,6 +184,51 @@ class EnergyDataFetcher:
             logger.error(f"Error fetching PLD prices: {str(e)}")
             return {'error': str(e)}
     
+    def get_weather_data(self, force=False):
+        """
+        Get average monthly temperature and precipitation data for Brazil.
+
+        Returns representative national averages based on historical climate data.
+        """
+        if not force and self._weather_cache is not None:
+            elapsed = (datetime.now() - self._weather_cache_time).total_seconds()
+            if elapsed < CACHE_TTL:
+                logger.info("Returning cached weather data (age: %.0fs)", elapsed)
+                return self._weather_cache
+
+        try:
+            months = [
+                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+            ]
+            # National average temperature (°C) and precipitation (mm) for Brazil
+            temperature = [27.1, 27.0, 26.8, 26.2, 25.1, 24.0,
+                           23.8, 24.5, 25.2, 26.0, 26.7, 27.0]
+            precipitation = [210, 180, 175, 120, 80, 55,
+                              45, 50, 95, 150, 185, 205]
+
+            result = {
+                'months': months,
+                'temperature': {
+                    'values': temperature,
+                    'unit': '°C',
+                    'label': 'Average Temperature'
+                },
+                'precipitation': {
+                    'values': precipitation,
+                    'unit': 'mm',
+                    'label': 'Average Precipitation'
+                },
+                'data_source': 'Historical climate averages',
+                'note': 'National monthly averages based on historical Brazilian climate data'
+            }
+            self._weather_cache = result
+            self._weather_cache_time = datetime.now()
+            return result
+        except Exception as e:
+            logger.error(f"Error fetching weather data: {str(e)}")
+            return {'error': str(e)}
+
     def get_grid_consumption(self, force=False):
         """
         Get current power consumption in the Brazilian grid from ONS

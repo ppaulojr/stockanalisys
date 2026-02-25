@@ -78,6 +78,17 @@ def get_consumption():
         logger.error(f"Error in /api/energy/consumption: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/energy/weather')
+def get_weather():
+    """API endpoint for average temperature and precipitation data"""
+    try:
+        force = request.args.get('force', 'false').lower() == 'true'
+        data = energy_fetcher.get_weather_data(force=force)
+        return jsonify(data)
+    except Exception as e:
+        logger.error(f"Error in /api/energy/weather: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/dashboard')
 def get_dashboard_data():
     """Get all dashboard data in a single request"""
@@ -89,6 +100,7 @@ def get_dashboard_data():
             'pld_prices': energy_fetcher.get_pld_prices(force=force),
             'consumption': energy_fetcher.get_grid_consumption(force=force)
         }
+        data['weather'] = energy_fetcher.get_weather_data(force=force)
         return jsonify(data)
     except Exception as e:
         logger.error(f"Error in /api/dashboard: {str(e)}")
