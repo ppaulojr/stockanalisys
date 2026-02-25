@@ -175,6 +175,9 @@ stockanalisys/
 ├── energy_fetcher.py        # Brazilian energy data fetcher
 ├── example_ons.py           # Example script for ONS integration
 ├── requirements.txt         # Python dependencies
+├── Procfile                 # Process file for Render/Heroku deployment
+├── render.yaml              # Render.com service configuration
+├── runtime.txt              # Python version specification
 ├── ons_integration/         # ONS API integration module
 │   ├── __init__.py
 │   ├── client.py            # ONS API client with fixture support
@@ -194,6 +197,20 @@ stockanalisys/
 ```
 
 ## Deployment / Implantação
+
+### Deploy to Render (Recommended – Free Tier Available)
+
+[Render](https://render.com) is the recommended platform for deploying this application publicly. It provides a free tier for web services and supports Python/Flask natively.
+
+#### Steps
+
+1. Create a free account at [render.com](https://render.com).
+2. Click **New → Web Service** and connect your GitHub repository.
+3. Render will automatically detect the `render.yaml` configuration in this repository and configure the service for you.
+4. Click **Deploy** – Render installs dependencies and starts the app with Gunicorn.
+5. Your app will be live at a URL like `https://stockanalisys.onrender.com`.
+
+> **Note:** On the free tier, the service spins down after 15 minutes of inactivity and restarts on the next request (cold start ~30 s).
 
 ### Using Gunicorn (Production)
 
