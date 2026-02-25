@@ -18,10 +18,19 @@ class TestCCEEClient(unittest.TestCase):
         """Test client initialization"""
         self.assertEqual(self.client.timeout, 10)
         self.assertIsNotNone(self.client.session)
-        self.assertEqual(
-            self.client.session.headers["User-Agent"],
-            "StockAnalysys-CCEE-Integration/0.1.0"
-        )
+        # User-Agent must look like a real browser so that Akamai/WAF does not
+        # return 403 Forbidden for programmatic requests.
+        ua = self.client.session.headers["User-Agent"]
+        self.assertIn("Mozilla/5.0", ua)
+        self.assertNotIn("StockAnalysys", ua)
+
+    def test_session_has_browser_like_headers(self):
+        """Test that session headers mimic a real browser to avoid WAF blocks"""
+        headers = self.client.session.headers
+        self.assertIn("Accept", headers)
+        self.assertIn("Accept-Language", headers)
+        self.assertIn("Referer", headers)
+        self.assertIn("dadosabertos.ccee.org.br", headers["Referer"])
 
     def test_base_url(self):
         """Test that the base URL points to CCEE Dados Abertos"""
