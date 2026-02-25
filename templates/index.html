@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AXIA & Brazilian Energy Dashboard</title>
+    <script src="/static/js/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -228,7 +229,7 @@
         <!-- Weather Chart (full width) -->
         <div class="card" style="margin-bottom: 20px;">
             <h2>🌡️ Brazil Average Temperature &amp; Precipitation</h2>
-            <canvas id="weather-chart" width="1260" height="300" style="width:100%;height:300px;"></canvas>
+            <canvas id="weather-chart"></canvas>
             <div id="weather-note"></div>
             <button class="refresh-btn" onclick="loadWeather()">Refresh Data</button>
         </div>
@@ -376,13 +377,63 @@
         }
         
         // Load weather data
+        let weatherChart = null;
         async function loadWeather() {
             try {
                 const response = await fetch('/api/energy/weather');
                 const data = await response.json();
 
-                const canvas = document.getElementById('weather-chart');
-                drawWeatherChart(canvas, data);
+                const ctx = document.getElementById('weather-chart').getContext('2d');
+                if (weatherChart) {
+                    weatherChart.destroy();
+                }
+                weatherChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.months,
+                        datasets: [
+                            {
+                                label: 'Temperature (°C)',
+                                data: data.temperature.values,
+                                type: 'line',
+                                borderColor: '#e74c3c',
+                                backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                                yAxisID: 'y-temp',
+                                tension: 0.4,
+                                fill: true,
+                                pointBackgroundColor: '#e74c3c'
+                            },
+                            {
+                                label: 'Precipitation (mm)',
+                                data: data.precipitation.values,
+                                type: 'bar',
+                                backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                                borderColor: '#667eea',
+                                borderWidth: 1,
+                                yAxisID: 'y-precip'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            'y-temp': {
+                                type: 'linear',
+                                position: 'left',
+                                title: { display: true, text: 'Temperature (°C)' },
+                                min: 0
+                            },
+                            'y-precip': {
+                                type: 'linear',
+                                position: 'right',
+                                title: { display: true, text: 'Precipitation (mm)' },
+                                min: 0,
+                                grid: { drawOnChartArea: false }
+                            }
+                        }
+                    }
+                });
 
                 if (data.note) {
                     document.getElementById('weather-note').innerHTML =
@@ -392,122 +443,6 @@
                 document.getElementById('weather-note').innerHTML =
                     '<div class="error">Error loading weather data: ' + error.message + '</div>';
             }
-        }
-
-        function drawWeatherChart(canvas, data) {
-            const ctx = canvas.getContext('2d');
-            const months = data.months;
-            const temps = data.temperature.values;
-            const precips = data.precipitation.values;
-
-            const W = canvas.width;
-            const H = canvas.height;
-            const padL = 60, padR = 60, padT = 30, padB = 40;
-            const chartW = W - padL - padR;
-            const chartH = H - padT - padB;
-
-            ctx.clearRect(0, 0, W, H);
-
-            // Scales
-            const maxTemp = Math.max(...temps) + 2;
-            const minTemp = Math.min(...temps) - 2;
-            const maxPrecip = Math.max(...precips) * 1.1;
-
-            const xStep = chartW / (months.length - 1);
-
-            // Grid lines & labels
-            ctx.strokeStyle = '#e0e0e0';
-            ctx.lineWidth = 1;
-            ctx.fillStyle = '#555';
-            ctx.font = '11px Segoe UI, sans-serif';
-            ctx.textAlign = 'right';
-            const tempTicks = 5;
-            for (let i = 0; i <= tempTicks; i++) {
-                const val = minTemp + (maxTemp - minTemp) * i / tempTicks;
-                const y = padT + chartH - (chartH * i / tempTicks);
-                ctx.beginPath();
-                ctx.moveTo(padL, y);
-                ctx.lineTo(padL + chartW, y);
-                ctx.stroke();
-                ctx.fillText(val.toFixed(1) + '°C', padL - 4, y + 4);
-            }
-
-            // Right axis labels (precipitation)
-            ctx.textAlign = 'left';
-            ctx.fillStyle = '#667eea';
-            const precipTicks = 5;
-            for (let i = 0; i <= precipTicks; i++) {
-                const val = maxPrecip * i / precipTicks;
-                const y = padT + chartH - (chartH * i / precipTicks);
-                ctx.fillText(val.toFixed(0) + 'mm', padL + chartW + 4, y + 4);
-            }
-
-            // X axis labels
-            ctx.fillStyle = '#555';
-            ctx.textAlign = 'center';
-            months.forEach((m, i) => {
-                const x = padL + i * xStep;
-                ctx.fillText(m, x, padT + chartH + 20);
-            });
-
-            // Precipitation bars
-            const barW = xStep * 0.5;
-            precips.forEach((p, i) => {
-                const x = padL + i * xStep - barW / 2;
-                const barH = (p / maxPrecip) * chartH;
-                const y = padT + chartH - barH;
-                ctx.fillStyle = 'rgba(102, 126, 234, 0.6)';
-                ctx.fillRect(x, y, barW, barH);
-                ctx.strokeStyle = '#667eea';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(x, y, barW, barH);
-            });
-
-            // Temperature line
-            ctx.beginPath();
-            ctx.strokeStyle = '#e74c3c';
-            ctx.lineWidth = 2.5;
-            temps.forEach((t, i) => {
-                const x = padL + i * xStep;
-                const y = padT + chartH - ((t - minTemp) / (maxTemp - minTemp)) * chartH;
-                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-            });
-            ctx.stroke();
-
-            // Temperature fill
-            ctx.beginPath();
-            temps.forEach((t, i) => {
-                const x = padL + i * xStep;
-                const y = padT + chartH - ((t - minTemp) / (maxTemp - minTemp)) * chartH;
-                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-            });
-            ctx.lineTo(padL + (months.length - 1) * xStep, padT + chartH);
-            ctx.lineTo(padL, padT + chartH);
-            ctx.closePath();
-            ctx.fillStyle = 'rgba(231, 76, 60, 0.1)';
-            ctx.fill();
-
-            // Temperature dots
-            temps.forEach((t, i) => {
-                const x = padL + i * xStep;
-                const y = padT + chartH - ((t - minTemp) / (maxTemp - minTemp)) * chartH;
-                ctx.beginPath();
-                ctx.arc(x, y, 4, 0, Math.PI * 2);
-                ctx.fillStyle = '#e74c3c';
-                ctx.fill();
-            });
-
-            // Legend
-            ctx.fillStyle = 'rgba(231, 76, 60, 0.8)';
-            ctx.fillRect(padL, 8, 14, 10);
-            ctx.fillStyle = '#333';
-            ctx.textAlign = 'left';
-            ctx.font = '12px Segoe UI, sans-serif';
-            ctx.fillText('Temperature (°C)', padL + 18, 18);
-            ctx.fillStyle = 'rgba(102, 126, 234, 0.6)';
-            ctx.fillRect(padL + 170, 8, 14, 10);
-            ctx.fillStyle = '#333';
-            ctx.fillText('Precipitation (mm)', padL + 188, 18);
         }
 
         // Load all data on page load
