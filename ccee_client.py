@@ -219,7 +219,7 @@ class CCEEClient:
                 return None
 
             # Sort resources by name to get the most recent year
-            # Resources are typically named like "PLD_HORARIO_2025", "PLD_HORARIO_2024", etc.
+            # Resources are typically named like "pld_horario_2026", "pld_horario_2025", etc.
             sorted_resources = sorted(
                 resources,
                 key=lambda r: r.get("name", ""),

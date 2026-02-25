@@ -392,7 +392,7 @@ class TestCCEEClientFixtures(unittest.TestCase):
         self.assertIsNotNone(dataset)
         self.assertEqual(dataset["name"], "pld_horario")
         self.assertIn("resources", dataset)
-        self.assertEqual(len(dataset["resources"]), 2)
+        self.assertEqual(len(dataset["resources"]), 7)
 
     def test_get_resource_data_from_fixture(self):
         """Test getting PLD resource data from fixture"""
