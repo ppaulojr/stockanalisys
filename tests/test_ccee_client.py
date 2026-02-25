@@ -188,6 +188,64 @@ class TestCCEEClient(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(result["southeast"]["price"], 150.00)
 
+    def test_parse_pld_records_daily_average(self):
+        """Test that multiple hourly records on the same day are averaged"""
+        records = [
+            {
+                "dat_referencia": "2025-02-20",
+                "hora": 1,
+                "id_subsistema": "SE",
+                "val_pld": "100.00"
+            },
+            {
+                "dat_referencia": "2025-02-20",
+                "hora": 2,
+                "id_subsistema": "SE",
+                "val_pld": "200.00"
+            },
+            {
+                "dat_referencia": "2025-02-20",
+                "hora": 3,
+                "id_subsistema": "SE",
+                "val_pld": "300.00"
+            },
+        ]
+
+        result = self.client._parse_pld_records(records)
+
+        self.assertIsNotNone(result)
+        # Average of 100, 200, 300 = 200
+        self.assertEqual(result["southeast"]["price"], 200.00)
+
+    def test_parse_pld_records_daily_average_ignores_older_dates(self):
+        """Test that daily average only uses the most recent date"""
+        records = [
+            {
+                "dat_referencia": "2025-02-18",
+                "hora": 1,
+                "id_subsistema": "SE",
+                "val_pld": "500.00"
+            },
+            {
+                "dat_referencia": "2025-02-20",
+                "hora": 1,
+                "id_subsistema": "SE",
+                "val_pld": "100.00"
+            },
+            {
+                "dat_referencia": "2025-02-20",
+                "hora": 2,
+                "id_subsistema": "SE",
+                "val_pld": "200.00"
+            },
+        ]
+
+        result = self.client._parse_pld_records(records)
+
+        self.assertIsNotNone(result)
+        # Average of 100, 200 from 2025-02-20 only (not the 500 from 02-18)
+        self.assertEqual(result["southeast"]["price"], 150.00)
+
     def test_parse_pld_records_alternative_field_names(self):
         """Test parsing with alternative field names"""
         records = [
@@ -349,12 +407,13 @@ class TestCCEEClientFixtures(unittest.TestCase):
         self.assertIn("northeast", result)
         self.assertIn("north", result)
 
-        # Verify prices from fixture data
-        self.assertEqual(result["southeast"]["price"], 58.71)
+        # Verify daily average prices from fixture data
+        # Each submarket has hourly values 50, 60, 70 on the latest date → average = 60.00
+        self.assertEqual(result["southeast"]["price"], 60.00)
         self.assertEqual(result["southeast"]["submercado"], "SE/CO")
-        self.assertEqual(result["south"]["price"], 58.71)
-        self.assertEqual(result["northeast"]["price"], 58.71)
-        self.assertEqual(result["north"]["price"], 58.71)
+        self.assertEqual(result["south"]["price"], 60.00)
+        self.assertEqual(result["northeast"]["price"], 60.00)
+        self.assertEqual(result["north"]["price"], 60.00)
         self.assertEqual(result["data_source"], "CCEE Dados Abertos")
 
     def test_fixture_raises_error_when_not_found(self):
