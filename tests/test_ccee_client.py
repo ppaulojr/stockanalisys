@@ -300,5 +300,68 @@ class TestEnergyFetcherPLD(unittest.TestCase):
         self.assertEqual(result['data_source'], 'Fallback data')
 
 
+class TestCCEEClientFixtures(unittest.TestCase):
+    """Tests for CCEE client using fixture files"""
+
+    def setUp(self):
+        """Set up client with fixtures"""
+        import os
+        self.fixtures_path = os.path.join(
+            os.path.dirname(__file__), "fixtures"
+        )
+        self.client = CCEEClient(
+            use_fixtures=True,
+            fixtures_path=self.fixtures_path
+        )
+
+    def test_fixture_loading_enabled(self):
+        """Test that fixtures are enabled"""
+        self.assertTrue(self.client.use_fixtures)
+
+    def test_get_dataset_info_from_fixture(self):
+        """Test getting PLD dataset info from fixture"""
+        dataset = self.client.get_dataset_info("pld_horario")
+
+        self.assertIsNotNone(dataset)
+        self.assertEqual(dataset["name"], "pld_horario")
+        self.assertIn("resources", dataset)
+        self.assertEqual(len(dataset["resources"]), 2)
+
+    def test_get_resource_data_from_fixture(self):
+        """Test getting PLD resource data from fixture"""
+        records = self.client.get_resource_data("ccee-pld-horario-2025")
+
+        self.assertIsNotNone(records)
+        self.assertGreater(len(records), 0)
+        # Check structure of first record
+        first = records[0]
+        self.assertIn("dat_referencia", first)
+        self.assertIn("id_subsistema", first)
+        self.assertIn("val_pld", first)
+
+    def test_get_pld_data_full_workflow_with_fixtures(self):
+        """Test full PLD data retrieval workflow using fixtures"""
+        result = self.client.get_pld_data()
+
+        self.assertIsNotNone(result)
+        self.assertIn("southeast", result)
+        self.assertIn("south", result)
+        self.assertIn("northeast", result)
+        self.assertIn("north", result)
+
+        # Verify prices from fixture data
+        self.assertEqual(result["southeast"]["price"], 58.71)
+        self.assertEqual(result["southeast"]["submercado"], "SE/CO")
+        self.assertEqual(result["south"]["price"], 58.71)
+        self.assertEqual(result["northeast"]["price"], 58.71)
+        self.assertEqual(result["north"]["price"], 58.71)
+        self.assertEqual(result["data_source"], "CCEE Dados Abertos")
+
+    def test_fixture_raises_error_when_not_found(self):
+        """Test that missing fixture raises error when fixtures are enabled"""
+        with self.assertRaises(Exception):
+            self.client._make_request("nonexistent_endpoint")
+
+
 if __name__ == "__main__":
     unittest.main()

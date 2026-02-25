@@ -1,0 +1,73 @@
+{
+    "help": "https://dadosabertos.ccee.org.br/api/3/action/help_show?name=datastore_search",
+    "success": true,
+    "result": {
+        "resource_id": "ccee-pld-horario-2025",
+        "fields": [
+            {"id": "dat_referencia", "type": "text"},
+            {"id": "hora", "type": "int"},
+            {"id": "id_subsistema", "type": "text"},
+            {"id": "nom_subsistema", "type": "text"},
+            {"id": "val_pld", "type": "numeric"}
+        ],
+        "records": [
+            {
+                "dat_referencia": "2026-02-24",
+                "hora": 1,
+                "id_subsistema": "SE",
+                "nom_subsistema": "SUDESTE",
+                "val_pld": "58.71"
+            },
+            {
+                "dat_referencia": "2026-02-24",
+                "hora": 1,
+                "id_subsistema": "S",
+                "nom_subsistema": "SUL",
+                "val_pld": "58.71"
+            },
+            {
+                "dat_referencia": "2026-02-24",
+                "hora": 1,
+                "id_subsistema": "NE",
+                "nom_subsistema": "NORDESTE",
+                "val_pld": "58.71"
+            },
+            {
+                "dat_referencia": "2026-02-24",
+                "hora": 1,
+                "id_subsistema": "N",
+                "nom_subsistema": "NORTE",
+                "val_pld": "58.71"
+            },
+            {
+                "dat_referencia": "2026-02-23",
+                "hora": 1,
+                "id_subsistema": "SE",
+                "nom_subsistema": "SUDESTE",
+                "val_pld": "61.93"
+            },
+            {
+                "dat_referencia": "2026-02-23",
+                "hora": 1,
+                "id_subsistema": "S",
+                "nom_subsistema": "SUL",
+                "val_pld": "61.93"
+            },
+            {
+                "dat_referencia": "2026-02-23",
+                "hora": 1,
+                "id_subsistema": "NE",
+                "nom_subsistema": "NORDESTE",
+                "val_pld": "58.71"
+            },
+            {
+                "dat_referencia": "2026-02-23",
+                "hora": 1,
+                "id_subsistema": "N",
+                "nom_subsistema": "NORTE",
+                "val_pld": "58.71"
+            }
+        ],
+        "total": 8
+    }
+}
