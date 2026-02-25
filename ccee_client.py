@@ -224,10 +224,12 @@ class CCEEClient:
                 if not resource_id:
                     continue
 
-                # Fetch the latest records, sorted by date descending
+                # Fetch the latest records, sorted by date descending.
+                # A full day has 96 records (24 hours × 4 submarkets);
+                # use 200 to ensure we capture a complete day for averaging.
                 records = self.get_resource_data(
                     resource_id,
-                    limit=100,
+                    limit=200,
                     sort="dat_referencia desc"
                 )
 
