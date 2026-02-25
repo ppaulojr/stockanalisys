@@ -276,8 +276,9 @@ class CCEEClient:
             "NORTE": ("north", "N"),
         }
 
-        # Group records by submarket and find the latest for each
-        latest_by_region = {}
+        # Group PLD values by (region, date) so we can compute daily averages
+        region_date_values = {}  # {region_key: {date: [values], ...}}
+        region_labels = {}  # {region_key: submercado_label}
 
         for record in records:
             # Get submarket identifier
@@ -317,29 +318,32 @@ class CCEEClient:
                 ""
             ).strip()
 
-            # Keep the latest record for each region
-            current_date = latest_by_region.get(region_key, {}).get("date", "")
-            if date_str >= current_date:
-                latest_by_region[region_key] = {
-                    "date": date_str,
-                    "price": pld_value,
-                    "submercado": submercado_label,
-                }
+            # Collect all PLD values grouped by region and date
+            if region_key not in region_date_values:
+                region_date_values[region_key] = {}
+            if date_str not in region_date_values[region_key]:
+                region_date_values[region_key][date_str] = []
+            region_date_values[region_key][date_str].append(pld_value)
+            region_labels[region_key] = submercado_label
 
-        if not latest_by_region:
+        if not region_date_values:
             return None
 
-        # Build the result
+        # Build the result using the daily average for the most recent date per region
         result = {}
-        for region_key, data in latest_by_region.items():
+        for region_key, date_values in region_date_values.items():
+            latest_date = max(date_values.keys())
+            values = date_values[latest_date]
+            avg_price = sum(values) / len(values)
+
             result[region_key] = {
-                "price": round(data["price"], 2),
-                "submercado": data["submercado"],
+                "price": round(avg_price, 2),
+                "submercado": region_labels[region_key],
                 "currency": "BRL/MWh",
-                "timestamp": data["date"],
+                "timestamp": latest_date,
             }
 
         result["data_source"] = "CCEE Dados Abertos"
-        result["note"] = "Real-time PLD data from CCEE (Câmara de Comercialização de Energia Elétrica)"
+        result["note"] = "Daily average PLD data from CCEE (Câmara de Comercialização de Energia Elétrica)"
 
         return result

@@ -16,28 +16,84 @@
                 "hora": 1,
                 "id_subsistema": "SE",
                 "nom_subsistema": "SUDESTE",
-                "val_pld": "58.71"
+                "val_pld": "50.00"
+            },
+            {
+                "dat_referencia": "2026-02-24",
+                "hora": 2,
+                "id_subsistema": "SE",
+                "nom_subsistema": "SUDESTE",
+                "val_pld": "60.00"
+            },
+            {
+                "dat_referencia": "2026-02-24",
+                "hora": 3,
+                "id_subsistema": "SE",
+                "nom_subsistema": "SUDESTE",
+                "val_pld": "70.00"
             },
             {
                 "dat_referencia": "2026-02-24",
                 "hora": 1,
                 "id_subsistema": "S",
                 "nom_subsistema": "SUL",
-                "val_pld": "58.71"
+                "val_pld": "50.00"
+            },
+            {
+                "dat_referencia": "2026-02-24",
+                "hora": 2,
+                "id_subsistema": "S",
+                "nom_subsistema": "SUL",
+                "val_pld": "60.00"
+            },
+            {
+                "dat_referencia": "2026-02-24",
+                "hora": 3,
+                "id_subsistema": "S",
+                "nom_subsistema": "SUL",
+                "val_pld": "70.00"
             },
             {
                 "dat_referencia": "2026-02-24",
                 "hora": 1,
                 "id_subsistema": "NE",
                 "nom_subsistema": "NORDESTE",
-                "val_pld": "58.71"
+                "val_pld": "50.00"
+            },
+            {
+                "dat_referencia": "2026-02-24",
+                "hora": 2,
+                "id_subsistema": "NE",
+                "nom_subsistema": "NORDESTE",
+                "val_pld": "60.00"
+            },
+            {
+                "dat_referencia": "2026-02-24",
+                "hora": 3,
+                "id_subsistema": "NE",
+                "nom_subsistema": "NORDESTE",
+                "val_pld": "70.00"
             },
             {
                 "dat_referencia": "2026-02-24",
                 "hora": 1,
                 "id_subsistema": "N",
                 "nom_subsistema": "NORTE",
-                "val_pld": "58.71"
+                "val_pld": "50.00"
+            },
+            {
+                "dat_referencia": "2026-02-24",
+                "hora": 2,
+                "id_subsistema": "N",
+                "nom_subsistema": "NORTE",
+                "val_pld": "70.00"
+            },
+            {
+                "dat_referencia": "2026-02-24",
+                "hora": 3,
+                "id_subsistema": "N",
+                "nom_subsistema": "NORTE",
+                "val_pld": "60.00"
             },
             {
                 "dat_referencia": "2026-02-23",
@@ -68,6 +124,6 @@
                 "val_pld": "58.71"
             }
         ],
-        "total": 8
+        "total": 16
     }
 }
