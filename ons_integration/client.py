@@ -12,7 +12,9 @@ import os
 import requests
 from datetime import datetime, timedelta
 from pathlib import Path
+from requests.adapters import HTTPAdapter
 from typing import List, Optional, Dict, Any
+from urllib3.util.retry import Retry
 from .models import EnergyData, LoadData, GenerationData
 
 
@@ -61,6 +63,16 @@ class ONSClient:
         self.session.headers.update({
             "User-Agent": "StockAnalysys-ONS-Integration/0.1.0"
         })
+        
+        # Configure retry logic for transient network errors (DNS failures, etc.)
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
         
         # Configure fixture loading for sandbox/offline testing
         if use_fixtures is not None:

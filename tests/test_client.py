@@ -32,6 +32,14 @@ class TestONSClient(unittest.TestCase):
         """Testa que o path do dataset carga_energia usa o sufixo _di"""
         self.assertEqual(ONSClient.DATASET_PATHS["carga_energia"], "carga_energia_di")
     
+    def test_session_has_retry_adapter(self):
+        """Testa que a sessão tem retry configurado para lidar com erros de rede transitórios"""
+        adapter = self.client.session.get_adapter("https://example.com")
+        self.assertEqual(adapter.max_retries.total, 3)
+        self.assertEqual(adapter.max_retries.backoff_factor, 1)
+        self.assertIn(429, adapter.max_retries.status_forcelist)
+        self.assertIn(503, adapter.max_retries.status_forcelist)
+    
     @patch('ons_integration.client.requests.Session.get')
     def test_make_request_success(self, mock_get):
         """Testa requisição bem-sucedida"""
