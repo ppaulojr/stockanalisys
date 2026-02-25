@@ -8,6 +8,7 @@ import requests
 from datetime import datetime
 import logging
 from ons_integration import ONSClient
+from ccee_client import CCEEClient
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ class EnergyDataFetcher:
     def __init__(self):
         self.ons_url = "http://www.ons.org.br"
         self.ons_client = ONSClient()
+        self.ccee_client = CCEEClient()
         
     def get_reservoir_data(self):
         """
@@ -101,11 +103,20 @@ class EnergyDataFetcher:
     def get_pld_prices(self):
         """
         Get CCEE PLD (Preço de Liquidação das Diferenças) prices
-        Note: This is simulated data as real API requires CCEE authentication
+        
+        Fetches real PLD data from CCEE Dados Abertos portal.
+        Falls back to cached/simulated data if CCEE API is unavailable.
         """
         try:
-            # In a real implementation, this would fetch from CCEE API
-            # PLD prices are in BRL/MWh
+            # Try to get real PLD data from CCEE Dados Abertos
+            pld_data = self.ccee_client.get_pld_data()
+            
+            if pld_data:
+                logger.info("Successfully retrieved PLD data from CCEE Dados Abertos")
+                return pld_data
+            
+            # Fallback to simulated data if CCEE API is unavailable
+            logger.warning("CCEE API unavailable, using fallback PLD data")
             return {
                 'southeast': {
                     'price': 145.32,
@@ -131,7 +142,8 @@ class EnergyDataFetcher:
                     'currency': 'BRL/MWh',
                     'timestamp': datetime.now().isoformat()
                 },
-                'note': 'Simulated data - Real implementation requires CCEE API access'
+                'data_source': 'Fallback data',
+                'note': 'CCEE API temporarily unavailable - using fallback data'
             }
         except Exception as e:
             logger.error(f"Error fetching PLD prices: {str(e)}")

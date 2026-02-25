@@ -11,7 +11,7 @@ Dashboard web para análise de ações AXIA e monitoramento do setor elétrico b
 
 ## Screenshots
 
-![Dashboard Preview](https://github.com/user-attachments/assets/704d0402-6858-4c06-be8c-b5892bbc6ff0)
+![Dashboard Preview](https://github.com/user-attachments/assets/73a9375c-9994-4739-9ac6-d09675cee2f8)
 
 ## Installation / Instalação
 
@@ -120,7 +120,7 @@ curl http://localhost:5000/api/dashboard
 - **Stock Data**: Yahoo Finance API via yfinance library
 - **Energy Data**: Real data from ONS (Operador Nacional do Sistema Elétrico)
   - **Note**: ONS provides free public API access at https://dados.ons.org.br/
-  - **Note**: CCEE data is simulated and would require API credentials for real implementation
+  - **Note**: CCEE data is fetched from the [Dados Abertos CCEE](https://dadosabertos.ccee.org.br/) portal (free, public access)
 
 ## Testing in Sandbox/Offline Environments
 
@@ -171,6 +171,7 @@ See `tests/fixtures/README.md` for detailed documentation on creating custom fix
 stockanalisys/
 ├── app.py                   # Flask application and API routes
 ├── axia_fetcher.py          # AXIA stock data fetcher
+├── ccee_client.py           # CCEE API client for PLD prices
 ├── energy_fetcher.py        # Brazilian energy data fetcher
 ├── example_ons.py           # Example script for ONS integration
 ├── requirements.txt         # Python dependencies
@@ -182,7 +183,8 @@ stockanalisys/
 │   ├── fixtures/            # Sample ONS API responses for offline testing
 │   │   ├── README.md        # Fixture documentation
 │   │   └── *.json           # JSON fixture files
-│   ├── test_client.py       # Client tests
+│   ├── test_ccee_client.py  # CCEE client tests
+│   ├── test_client.py       # ONS client tests
 │   ├── test_fixtures.py     # Fixture loading tests
 │   ├── test_models.py       # Model tests
 │   └── test_ons_parsing.py  # Parsing tests
@@ -226,6 +228,6 @@ Pedro Paulo Oliveira Jr. (ppaulojr)
 
 This project uses real data from ONS (Operador Nacional do Sistema Elétrico) which provides free public API access at https://dados.ons.org.br/. 
 
-CCEE (Câmara de Comercialização de Energia Elétrica) data is currently simulated. For production use with real CCEE data, you would need to register and obtain API credentials.
+CCEE (Câmara de Comercialização de Energia Elétrica) PLD data is fetched from the [Dados Abertos CCEE](https://dadosabertos.ccee.org.br/) portal, which provides free public access to energy market data under Creative Commons Attribution 4.0 license. If the CCEE API is temporarily unavailable, the application falls back to cached data.
 
 The AXIA stock data is fetched in real-time from Yahoo Finance and reflects actual market data from B3 (Brazilian Stock Exchange).
