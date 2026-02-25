@@ -9,6 +9,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+CACHE_TTL = 3600  # 1 hour in seconds
+
 class AxiaDataFetcher:
     """Fetches AXIA stock data from B3 (Brazilian stock exchange)"""
     
@@ -22,9 +24,20 @@ class AxiaDataFetcher:
         # Create a session with proper SSL certificate verification
         self.session = requests.Session()
         self.session.verify = certifi.where()
-    
-    def get_current_prices(self):
+        # In-memory cache
+        self._prices_cache = None
+        self._prices_cache_time = None
+        self._historical_cache = {}
+        self._historical_cache_time = {}
+
+    def get_current_prices(self, force=False):
         """Get current prices for all AXIA stock classes"""
+        if not force and self._prices_cache is not None:
+            elapsed = (datetime.now() - self._prices_cache_time).total_seconds()
+            if elapsed < CACHE_TTL:
+                logger.info("Returning cached AXIA prices (age: %.0fs)", elapsed)
+                return self._prices_cache
+
         prices = {}
         
         for name, symbol in self.symbols.items():
@@ -58,10 +71,19 @@ class AxiaDataFetcher:
                     'error': str(e)
                 }
         
+        self._prices_cache = prices
+        self._prices_cache_time = datetime.now()
         return prices
     
-    def get_historical_data(self, symbol_name, period='1mo'):
+    def get_historical_data(self, symbol_name, period='1mo', force=False):
         """Get historical data for a specific AXIA symbol"""
+        cache_key = f"{symbol_name}_{period}"
+        if not force and cache_key in self._historical_cache:
+            elapsed = (datetime.now() - self._historical_cache_time[cache_key]).total_seconds()
+            if elapsed < CACHE_TTL:
+                logger.info("Returning cached historical data for %s (age: %.0fs)", symbol_name, elapsed)
+                return self._historical_cache[cache_key]
+
         try:
             if symbol_name not in self.symbols:
                 return None
@@ -84,6 +106,8 @@ class AxiaDataFetcher:
                     'volume': int(row['Volume'])
                 })
             
+            self._historical_cache[cache_key] = data
+            self._historical_cache_time[cache_key] = datetime.now()
             return data
         except Exception as e:
             logger.error(f"Error fetching historical data for {symbol_name}: {str(e)}")

@@ -12,6 +12,8 @@ from ccee_client import CCEEClient
 
 logger = logging.getLogger(__name__)
 
+CACHE_TTL = 3600  # 1 hour in seconds
+
 class EnergyDataFetcher:
     """Fetches Brazilian energy sector data"""
     
@@ -19,14 +21,27 @@ class EnergyDataFetcher:
         self.ons_url = "http://www.ons.org.br"
         self.ons_client = ONSClient()
         self.ccee_client = CCEEClient()
+        # In-memory cache
+        self._reservoir_cache = None
+        self._reservoir_cache_time = None
+        self._pld_cache = None
+        self._pld_cache_time = None
+        self._consumption_cache = None
+        self._consumption_cache_time = None
         
-    def get_reservoir_data(self):
+    def get_reservoir_data(self, force=False):
         """
         Get current reservoir levels data from ONS
         
         Uses the direct S3 access method based on:
         https://github.com/ONSBR/DadosAbertos
         """
+        if not force and self._reservoir_cache is not None:
+            elapsed = (datetime.now() - self._reservoir_cache_time).total_seconds()
+            if elapsed < CACHE_TTL:
+                logger.info("Returning cached reservoir data (age: %.0fs)", elapsed)
+                return self._reservoir_cache
+
         try:
             # Try to get real data directly from ONS S3 (preferred method)
             # Reference: https://github.com/ONSBR/DadosAbertos
@@ -36,6 +51,8 @@ class EnergyDataFetcher:
                 logger.info("Successfully retrieved reservoir data from ONS S3")
                 parsed_data['data_source'] = 'ONS S3'
                 parsed_data['note'] = 'Data retrieved directly from ONS S3 bucket'
+                self._reservoir_cache = parsed_data
+                self._reservoir_cache_time = datetime.now()
                 return parsed_data
             
             # Fallback to CKAN API search
@@ -55,6 +72,8 @@ class EnergyDataFetcher:
                 logger.info("Successfully parsed reservoir data from ONS")
                 parsed_data['data_source'] = 'ONS API'
                 parsed_data['note'] = 'Data successfully retrieved and parsed from ONS'
+                self._reservoir_cache = parsed_data
+                self._reservoir_cache_time = datetime.now()
                 return parsed_data
             elif ons_accessible:
                 # ONS is accessible but parsing failed, use fallback with note
@@ -68,7 +87,7 @@ class EnergyDataFetcher:
                 note = 'ONS API temporarily unavailable'
             
             # Return fallback data structure
-            return {
+            result = {
                 'southeast': {
                     'level_percent': 65.4,
                     'capacity_mwmed': 208355,
@@ -96,28 +115,39 @@ class EnergyDataFetcher:
                 'data_source': data_source,
                 'note': note
             }
+            self._reservoir_cache = result
+            self._reservoir_cache_time = datetime.now()
+            return result
         except Exception as e:
             logger.error(f"Error fetching reservoir data: {str(e)}")
             return {'error': str(e)}
     
-    def get_pld_prices(self):
+    def get_pld_prices(self, force=False):
         """
         Get CCEE PLD (Preço de Liquidação das Diferenças) prices
         
         Fetches real PLD data from CCEE Dados Abertos portal.
         Falls back to cached/simulated data if CCEE API is unavailable.
         """
+        if not force and self._pld_cache is not None:
+            elapsed = (datetime.now() - self._pld_cache_time).total_seconds()
+            if elapsed < CACHE_TTL:
+                logger.info("Returning cached PLD prices (age: %.0fs)", elapsed)
+                return self._pld_cache
+
         try:
             # Try to get real PLD data from CCEE Dados Abertos
             pld_data = self.ccee_client.get_pld_data()
             
             if pld_data:
                 logger.info("Successfully retrieved PLD data from CCEE Dados Abertos")
+                self._pld_cache = pld_data
+                self._pld_cache_time = datetime.now()
                 return pld_data
             
             # Fallback to simulated data if CCEE API is unavailable
             logger.warning("CCEE API unavailable, using fallback PLD data")
-            return {
+            result = {
                 'southeast': {
                     'price': 145.32,
                     'submercado': 'SE/CO',
@@ -145,17 +175,26 @@ class EnergyDataFetcher:
                 'data_source': 'Fallback data',
                 'note': 'CCEE API temporarily unavailable - using fallback data'
             }
+            self._pld_cache = result
+            self._pld_cache_time = datetime.now()
+            return result
         except Exception as e:
             logger.error(f"Error fetching PLD prices: {str(e)}")
             return {'error': str(e)}
     
-    def get_grid_consumption(self):
+    def get_grid_consumption(self, force=False):
         """
         Get current power consumption in the Brazilian grid from ONS
         
         Uses the direct S3 access method based on:
         https://github.com/ONSBR/DadosAbertos
         """
+        if not force and self._consumption_cache is not None:
+            elapsed = (datetime.now() - self._consumption_cache_time).total_seconds()
+            if elapsed < CACHE_TTL:
+                logger.info("Returning cached consumption data (age: %.0fs)", elapsed)
+                return self._consumption_cache
+
         try:
             # Try to get real data directly from ONS S3 (preferred method)
             # Reference: https://github.com/ONSBR/DadosAbertos
@@ -165,6 +204,8 @@ class EnergyDataFetcher:
                 logger.info("Successfully retrieved consumption data from ONS S3")
                 parsed_data['data_source'] = 'ONS S3'
                 parsed_data['note'] = 'Data retrieved directly from ONS S3 bucket'
+                self._consumption_cache = parsed_data
+                self._consumption_cache_time = datetime.now()
                 return parsed_data
             
             # Fallback to CKAN API search
@@ -184,6 +225,8 @@ class EnergyDataFetcher:
                 logger.info("Successfully parsed consumption data from ONS")
                 parsed_data['data_source'] = 'ONS API'
                 parsed_data['note'] = 'Data successfully retrieved and parsed from ONS'
+                self._consumption_cache = parsed_data
+                self._consumption_cache_time = datetime.now()
                 return parsed_data
             elif ons_accessible:
                 # ONS is accessible but parsing failed, use fallback with note
@@ -197,7 +240,7 @@ class EnergyDataFetcher:
                 note = 'ONS API temporarily unavailable'
             
             # Return fallback data structure
-            return {
+            result = {
                 'current_load_mw': 68542,
                 'forecast_load_mw': 70125,
                 'timestamp': datetime.now().isoformat(),
@@ -210,6 +253,9 @@ class EnergyDataFetcher:
                 'data_source': data_source,
                 'note': note
             }
+            self._consumption_cache = result
+            self._consumption_cache_time = datetime.now()
+            return result
         except Exception as e:
             logger.error(f"Error fetching grid consumption: {str(e)}")
             return {'error': str(e)}

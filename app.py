@@ -1,7 +1,7 @@
 """
 Flask web application for AXIA stock and Brazilian energy dashboard
 """
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import logging
 from axia_fetcher import AxiaDataFetcher
 from energy_fetcher import EnergyDataFetcher
@@ -25,7 +25,8 @@ def index():
 def get_axia_prices():
     """API endpoint for AXIA stock prices"""
     try:
-        prices = axia_fetcher.get_current_prices()
+        force = request.args.get('force', 'false').lower() == 'true'
+        prices = axia_fetcher.get_current_prices(force=force)
         return jsonify(prices)
     except Exception as e:
         logger.error(f"Error in /api/axia/prices: {str(e)}")
@@ -35,7 +36,8 @@ def get_axia_prices():
 def get_axia_historical(symbol):
     """API endpoint for AXIA historical data"""
     try:
-        data = axia_fetcher.get_historical_data(symbol, period='1mo')
+        force = request.args.get('force', 'false').lower() == 'true'
+        data = axia_fetcher.get_historical_data(symbol, period='1mo', force=force)
         if data is None:
             return jsonify({'error': 'Symbol not found or no data available'}), 404
         return jsonify(data)
@@ -47,7 +49,8 @@ def get_axia_historical(symbol):
 def get_reservoirs():
     """API endpoint for reservoir data"""
     try:
-        data = energy_fetcher.get_reservoir_data()
+        force = request.args.get('force', 'false').lower() == 'true'
+        data = energy_fetcher.get_reservoir_data(force=force)
         return jsonify(data)
     except Exception as e:
         logger.error(f"Error in /api/energy/reservoirs: {str(e)}")
@@ -57,7 +60,8 @@ def get_reservoirs():
 def get_pld():
     """API endpoint for CCEE PLD prices"""
     try:
-        data = energy_fetcher.get_pld_prices()
+        force = request.args.get('force', 'false').lower() == 'true'
+        data = energy_fetcher.get_pld_prices(force=force)
         return jsonify(data)
     except Exception as e:
         logger.error(f"Error in /api/energy/pld: {str(e)}")
@@ -67,7 +71,8 @@ def get_pld():
 def get_consumption():
     """API endpoint for grid power consumption"""
     try:
-        data = energy_fetcher.get_grid_consumption()
+        force = request.args.get('force', 'false').lower() == 'true'
+        data = energy_fetcher.get_grid_consumption(force=force)
         return jsonify(data)
     except Exception as e:
         logger.error(f"Error in /api/energy/consumption: {str(e)}")
@@ -77,11 +82,12 @@ def get_consumption():
 def get_dashboard_data():
     """Get all dashboard data in a single request"""
     try:
+        force = request.args.get('force', 'false').lower() == 'true'
         data = {
-            'axia_prices': axia_fetcher.get_current_prices(),
-            'reservoirs': energy_fetcher.get_reservoir_data(),
-            'pld_prices': energy_fetcher.get_pld_prices(),
-            'consumption': energy_fetcher.get_grid_consumption()
+            'axia_prices': axia_fetcher.get_current_prices(force=force),
+            'reservoirs': energy_fetcher.get_reservoir_data(force=force),
+            'pld_prices': energy_fetcher.get_pld_prices(force=force),
+            'consumption': energy_fetcher.get_grid_consumption(force=force)
         }
         return jsonify(data)
     except Exception as e:
