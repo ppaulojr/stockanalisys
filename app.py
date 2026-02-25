@@ -98,9 +98,9 @@ def get_dashboard_data():
             'axia_prices': axia_fetcher.get_current_prices(force=force),
             'reservoirs': energy_fetcher.get_reservoir_data(force=force),
             'pld_prices': energy_fetcher.get_pld_prices(force=force),
-            'consumption': energy_fetcher.get_grid_consumption(force=force),
-            'weather': energy_fetcher.get_weather_data(force=force)
+            'consumption': energy_fetcher.get_grid_consumption(force=force)
         }
+        data['weather'] = energy_fetcher.get_weather_data(force=force)
         return jsonify(data)
     except Exception as e:
         logger.error(f"Error in /api/dashboard: {str(e)}")

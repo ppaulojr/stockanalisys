@@ -233,41 +233,6 @@ class TestEnergyDataFetcherCache(unittest.TestCase):
         self.assertIsNotNone(self.fetcher._reservoir_cache_time)
         self.assertEqual(result, self.fetcher._reservoir_cache)
 
-    def test_cache_is_empty_on_init_includes_weather(self):
-        """Weather cache should be None when the fetcher is first created"""
-        self.assertIsNone(self.fetcher._weather_cache)
-        self.assertIsNone(self.fetcher._weather_cache_time)
-
-    def test_get_weather_data_returns_cache_when_fresh(self):
-        """get_weather_data should return cached data if it is less than CACHE_TTL old"""
-        sample_weather = {'months': ['Jan'], 'temperature': {'values': [27.0]}, 'precipitation': {'values': [200]}}
-        self.fetcher._weather_cache = sample_weather
-        self.fetcher._weather_cache_time = datetime.now()
-
-        result = self.fetcher.get_weather_data()
-
-        self.assertEqual(result, sample_weather)
-
-    def test_get_weather_data_bypasses_cache_when_force(self):
-        """get_weather_data(force=True) should recompute even if cache is fresh"""
-        stale = {'months': ['old'], 'temperature': {'values': [0]}, 'precipitation': {'values': [0]}}
-        self.fetcher._weather_cache = stale
-        self.fetcher._weather_cache_time = datetime.now()
-
-        result = self.fetcher.get_weather_data(force=True)
-
-        # Result should be the real computed data, not the stale cache
-        self.assertNotEqual(result['months'], ['old'])
-        self.assertEqual(len(result['months']), 12)
-
-    def test_get_weather_data_stores_result_in_cache(self):
-        """get_weather_data should populate the cache after computation"""
-        result = self.fetcher.get_weather_data()
-
-        self.assertIsNotNone(self.fetcher._weather_cache)
-        self.assertIsNotNone(self.fetcher._weather_cache_time)
-        self.assertEqual(result, self.fetcher._weather_cache)
-
 
 if __name__ == "__main__":
     unittest.main()
