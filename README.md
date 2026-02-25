@@ -8,10 +8,11 @@ Dashboard web para análise de ações AXIA e monitoramento do setor elétrico b
 - 💧 **Reservoir Levels** - Current water reservoir levels across Brazilian regions
 - ⚡ **CCEE PLD Prices** - Settlement prices from the Brazilian Electric Energy Trading Chamber
 - 🔌 **Grid Consumption** - Real-time power consumption data from the Brazilian grid
+- 🌡️ **Temperature & Precipitation Chart** - Monthly average temperature (°C) and precipitation (mm) for Brazil
 
 ## Screenshots
 
-![Dashboard Preview](https://github.com/user-attachments/assets/f069148e-37c2-4f31-8bc9-e52f7e5c1371)
+![Dashboard Preview](screenshot.png)
 
 ## Installation / Instalação
 
@@ -100,6 +101,7 @@ The application provides several REST API endpoints:
 - `GET /api/energy/reservoirs` - Get reservoir level data
 - `GET /api/energy/pld` - Get CCEE PLD prices
 - `GET /api/energy/consumption` - Get grid power consumption
+- `GET /api/energy/weather` - Get monthly average temperature and precipitation data for Brazil
 - `GET /api/dashboard` - Get all dashboard data in a single request
 
 ### Example API Usage
