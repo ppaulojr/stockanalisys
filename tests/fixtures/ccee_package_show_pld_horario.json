@@ -1,0 +1,31 @@
+{
+    "help": "https://dadosabertos.ccee.org.br/api/3/action/help_show?name=package_show",
+    "success": true,
+    "result": {
+        "id": "pld_horario",
+        "name": "pld_horario",
+        "title": "PLD Horário",
+        "notes": "Preço de Liquidação das Diferenças (PLD) horário por submercado, calculado pela CCEE.",
+        "resources": [
+            {
+                "id": "ccee-pld-horario-2025",
+                "name": "PLD_HORARIO_2025",
+                "format": "CSV",
+                "url": "https://dadosabertos.ccee.org.br/dataset/pld_horario/resource/pld_horario_2025.csv",
+                "description": "PLD Horário 2025"
+            },
+            {
+                "id": "ccee-pld-horario-2024",
+                "name": "PLD_HORARIO_2024",
+                "format": "CSV",
+                "url": "https://dadosabertos.ccee.org.br/dataset/pld_horario/resource/pld_horario_2024.csv",
+                "description": "PLD Horário 2024"
+            }
+        ],
+        "organization": {
+            "id": "ccee-org-001",
+            "name": "ccee",
+            "title": "CCEE - Câmara de Comercialização de Energia Elétrica"
+        }
+    }
+}

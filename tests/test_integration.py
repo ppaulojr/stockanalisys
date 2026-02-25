@@ -1,16 +1,18 @@
 """
-Integration tests for ONS S3 data retrieval.
+Integration tests for ONS S3 data retrieval and CCEE PLD data.
 
 These tests make real network calls to the ONS S3 bucket at
 https://ons-aws-prod-opendata.s3.amazonaws.com
-and the CKAN API at https://dados.ons.org.br
-to verify that the client correctly downloads and parses the CSV data.
+the CKAN API at https://dados.ons.org.br
+and the CCEE Dados Abertos API at https://dadosabertos.ccee.org.br
+to verify that the clients correctly download and parse data.
 
 Previously these tests could not run due to firewall restrictions.
 """
 
 import requests
 import unittest
+from ccee_client import CCEEClient
 from ons_integration.client import ONSClient
 
 
@@ -169,6 +171,72 @@ class TestONSCKANIntegration(unittest.TestCase):
 
         self.assertIsInstance(datasets, list)
         self.assertGreater(len(datasets), 0, "Should list at least one dataset")
+
+
+class TestCCEEIntegration(unittest.TestCase):
+    """Integration tests for CCEE Dados Abertos API (dadosabertos.ccee.org.br)"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Check if CCEE API is reachable before running tests"""
+        try:
+            r = requests.get(
+                "https://dadosabertos.ccee.org.br/api/3/action/package_show?id=pld_horario",
+                timeout=15,
+            )
+            cls.ccee_available = r.status_code == 200
+        except Exception:
+            cls.ccee_available = False
+
+    def setUp(self):
+        """Initial test setup"""
+        if not self.ccee_available:
+            self.skipTest("CCEE API (dadosabertos.ccee.org.br) is not reachable")
+        self.client = CCEEClient(timeout=15)
+
+    def test_get_pld_dataset_info(self):
+        """Test fetching PLD dataset info from CCEE"""
+        dataset = self.client.get_dataset_info("pld_horario")
+
+        self.assertIsNotNone(dataset, "Should fetch PLD dataset info")
+        self.assertIn("resources", dataset)
+        self.assertGreater(len(dataset["resources"]), 0, "Should have at least one resource")
+
+    def test_get_pld_data(self):
+        """Test full PLD data retrieval from CCEE"""
+        result = self.client.get_pld_data()
+
+        self.assertIsNotNone(result, "Should return parsed PLD data")
+        self.assertIsInstance(result, dict)
+
+        # Should have data for at least some submarkets
+        expected_regions = {"southeast", "south", "northeast", "north"}
+        found_regions = set(result.keys()) & expected_regions
+        self.assertGreater(len(found_regions), 0, "Should have data for at least one submarket")
+
+        # Verify structure of each region
+        for region in found_regions:
+            self.assertIn("price", result[region])
+            self.assertIn("submercado", result[region])
+            self.assertIn("currency", result[region])
+            # Price should be a reasonable value (BRL/MWh)
+            price = result[region]["price"]
+            self.assertGreater(price, 0)
+            self.assertLess(price, 10000)
+
+        self.assertEqual(result.get("data_source"), "CCEE Dados Abertos")
+
+    def test_get_pld_prices_from_fetcher(self):
+        """Test that EnergyDataFetcher returns real CCEE data"""
+        from energy_fetcher import EnergyDataFetcher
+        fetcher = EnergyDataFetcher()
+        result = fetcher.get_pld_prices()
+
+        self.assertIsNotNone(result)
+        self.assertNotIn("error", result, "Should not return an error")
+        self.assertIn("data_source", result)
+        # When CCEE is available, should be real data
+        self.assertEqual(result["data_source"], "CCEE Dados Abertos")
 
 
 if __name__ == "__main__":
