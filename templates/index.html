@@ -195,7 +195,7 @@
                 <div id="axia-stocks">
                     <div class="loading">Loading...</div>
                 </div>
-                <button class="refresh-btn" onclick="loadAxiaPrices()">Refresh Prices</button>
+                <button class="refresh-btn" onclick="loadAxiaPrices(true)">Refresh Prices</button>
             </div>
             
             <!-- Reservoir Levels -->
@@ -204,7 +204,7 @@
                 <div id="reservoirs">
                     <div class="loading">Loading...</div>
                 </div>
-                <button class="refresh-btn" onclick="loadReservoirs()">Refresh Data</button>
+                <button class="refresh-btn" onclick="loadReservoirs(true)">Refresh Data</button>
             </div>
             
             <!-- CCEE PLD Prices -->
@@ -213,7 +213,7 @@
                 <div id="pld-prices">
                     <div class="loading">Loading...</div>
                 </div>
-                <button class="refresh-btn" onclick="loadPLD()">Refresh Prices</button>
+                <button class="refresh-btn" onclick="loadPLD(true)">Refresh Prices</button>
             </div>
             
             <!-- Grid Consumption -->
@@ -222,7 +222,7 @@
                 <div id="consumption">
                     <div class="loading">Loading...</div>
                 </div>
-                <button class="refresh-btn" onclick="loadConsumption()">Refresh Data</button>
+                <button class="refresh-btn" onclick="loadConsumption(true)">Refresh Data</button>
             </div>
         </div>
 
@@ -231,18 +231,19 @@
             <h2>🌡️ Brazil Average Temperature &amp; Precipitation</h2>
             <canvas id="weather-chart"></canvas>
             <div id="weather-note"></div>
-            <button class="refresh-btn" onclick="loadWeather()">Refresh Data</button>
+            <button class="refresh-btn" onclick="loadWeather(true)">Refresh Data</button>
         </div>
     </div>
     
     <script>
         // Load AXIA stock prices
-        async function loadAxiaPrices() {
+        async function loadAxiaPrices(force = false) {
             const container = document.getElementById('axia-stocks');
             container.innerHTML = '<div class="loading">Loading...</div>';
             
             try {
-                const response = await fetch('/api/axia/prices');
+                const url = force ? '/api/axia/prices?force=true' : '/api/axia/prices';
+                const response = await fetch(url);
                 const data = await response.json();
                 
                 let html = '';
@@ -271,12 +272,13 @@
         }
         
         // Load reservoir data
-        async function loadReservoirs() {
+        async function loadReservoirs(force = false) {
             const container = document.getElementById('reservoirs');
             container.innerHTML = '<div class="loading">Loading...</div>';
             
             try {
-                const response = await fetch('/api/energy/reservoirs');
+                const url = force ? '/api/energy/reservoirs?force=true' : '/api/energy/reservoirs';
+                const response = await fetch(url);
                 const data = await response.json();
                 
                 let html = '';
@@ -305,12 +307,13 @@
         }
         
         // Load PLD prices
-        async function loadPLD() {
+        async function loadPLD(force = false) {
             const container = document.getElementById('pld-prices');
             container.innerHTML = '<div class="loading">Loading...</div>';
             
             try {
-                const response = await fetch('/api/energy/pld');
+                const url = force ? '/api/energy/pld?force=true' : '/api/energy/pld';
+                const response = await fetch(url);
                 const data = await response.json();
                 
                 let html = '';
@@ -334,12 +337,13 @@
         }
         
         // Load grid consumption
-        async function loadConsumption() {
+        async function loadConsumption(force = false) {
             const container = document.getElementById('consumption');
             container.innerHTML = '<div class="loading">Loading...</div>';
             
             try {
-                const response = await fetch('/api/energy/consumption');
+                const url = force ? '/api/energy/consumption?force=true' : '/api/energy/consumption';
+                const response = await fetch(url);
                 const data = await response.json();
                 
                 let html = `
@@ -378,9 +382,10 @@
         
         // Load weather data
         let weatherChart = null;
-        async function loadWeather() {
+        async function loadWeather(force = false) {
             try {
-                const response = await fetch('/api/energy/weather');
+                const url = force ? '/api/energy/weather?force=true' : '/api/energy/weather';
+                const response = await fetch(url);
                 const data = await response.json();
 
                 const ctx = document.getElementById('weather-chart').getContext('2d');
@@ -452,15 +457,6 @@
             loadPLD();
             loadConsumption();
             loadWeather();
-            
-            // Auto-refresh every 60 seconds
-            setInterval(() => {
-                loadAxiaPrices();
-                loadReservoirs();
-                loadPLD();
-                loadConsumption();
-                loadWeather();
-            }, 60000);
         };
     </script>
 </body>

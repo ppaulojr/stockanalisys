@@ -12,7 +12,7 @@ Dashboard web para análise de ações AXIA e monitoramento do setor elétrico b
 
 ## Screenshots
 
-![Dashboard Preview](screenshot.png)
+![Dashboard Preview](https://github.com/user-attachments/assets/f069148e-37c2-4f31-8bc9-e52f7e5c1371)
 
 ## Installation / Instalação
 
